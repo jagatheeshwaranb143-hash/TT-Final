@@ -1,0 +1,76 @@
+# =============================================================================
+# SmartSchedule — .gitignore
+# =============================================================================
+
+# ─── Environment / Secrets ───
+.env
+.env.local
+.env.*.local
+*.env
+
+# ─── Python / Backend ───
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+env/
+.Python
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+*.log
+
+# ─── Node.js / Next.js ───
+node_modules/
+.next/
+out/
+.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ─── Flutter / Dart ───
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+*.lock
+pubspec.lock
+*.apk
+*.aab
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# ─── Database ───
+*.sql.bak
+*.dump
+
+# ─── IDE / OS ───
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Docker ───
+.docker/
+
+# ─── Reports / Exports (generated at runtime) ───
+exports/
+reports_output/

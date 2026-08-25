@@ -1,0 +1,75 @@
+# =============================================================================
+# SmartSchedule / TIMETABLEAI — Root .gitignore
+# =============================================================================
+
+# ─── Environment / Secrets ───
+.env
+.env.*
+*.env
+!.env.example
+
+# ─── Python / Backend ───
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+env/
+.Python
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+*.log
+
+# ─── Database ───
+*.db
+*.sqlite3
+*.sql.bak
+*.dump
+
+# ─── Node.js / Web ───
+node_modules/
+.next/
+out/
+.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ─── Flutter / Mobile ───
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+*.apk
+*.aab
+*.ipa
+
+# ─── IDE & System Files ───
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local scraped/reference datasets (may contain personnel information)
+/scrape_sec_staff.py
+/sec_aids_timetable.html
+/sec_aids_timetable.json
+/sudharsan_staff_dataset.csv
+/sudharsan_staff_dataset.json
+/sudharsan_staff_directory.md
