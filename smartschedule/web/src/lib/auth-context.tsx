@@ -32,26 +32,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
       return;
     }
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const savedUser = localStorage.getItem('smartschedule_user');
+    if (savedUser) {
+      try {
+        const cachedUser = JSON.parse(savedUser) as User;
+        if (cachedUser?.id && cachedUser?.role && cachedUser?.full_name) {
+          setToken(savedToken);
+          setUser(cachedUser);
+          setIsLoading(false);
+        }
+      } catch {
+        localStorage.removeItem('smartschedule_user');
+      }
+    }
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+    let active = true;
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 4000);
     fetch(`${API_URL}/api/v1/auth/me`, {
       headers: { Authorization: `Bearer ${savedToken}` },
+      signal: controller.signal,
     })
       .then(async response => {
         if (!response.ok) throw new Error('Stored session is no longer valid');
         const currentUser = await response.json();
+        if (!active) return;
         setToken(savedToken);
         setUser(currentUser);
         localStorage.setItem('smartschedule_user', JSON.stringify(currentUser));
       })
       .catch(() => {
+        if (!active) return;
+        setToken(null);
+        setUser(null);
         localStorage.removeItem('smartschedule_token');
         localStorage.removeItem('smartschedule_user');
+        window.location.replace('/login');
       })
-      .finally(() => setIsLoading(false));
+      .finally(() => {
+        window.clearTimeout(timeoutId);
+        if (active) setIsLoading(false);
+      });
+    return () => {
+      active = false;
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
     let response: Response;
     try {
       response = await fetch(`${API_URL}/api/v1/auth/login`, {

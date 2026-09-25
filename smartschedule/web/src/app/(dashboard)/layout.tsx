@@ -3,62 +3,115 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import {
+  BookOpen, Building2, CalendarDays, ChevronLeft, GraduationCap,
+  Info, Settings,
+  LayoutDashboard, LoaderCircle, LogOut, Menu, PanelLeftClose, PanelLeftOpen,
+  Sparkles, Table2, Users, WandSparkles, X,
+} from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
 const links = [
-  { href: '/dashboard', label: 'Dashboard', icon: 'H' },
-  { href: '/departments', label: 'Departments', icon: 'D' },
-  { href: '/faculty', label: 'Faculty', icon: 'F' },
-  { href: '/subjects', label: 'Subjects', icon: 'S' },
-  { href: '/classes', label: 'Classes', icon: 'C' },
-  { href: '/timetable/generate', label: 'Generate Timetable', icon: 'G' },
-  { href: '/timetable', label: 'View Timetable', icon: 'T' },
+  { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, roles: ['super_admin', 'hod', 'faculty', 'student'] },
+  { href: '/departments', label: 'Departments', icon: Building2, roles: ['super_admin', 'hod'] },
+  { href: '/faculty', label: 'Faculty', icon: Users, roles: ['super_admin', 'hod', 'faculty'] },
+  { href: '/subjects', label: 'Subjects', icon: BookOpen, roles: ['super_admin', 'hod'] },
+  { href: '/classes', label: 'Classes', icon: GraduationCap, roles: ['super_admin', 'hod'] },
+  { href: '/timetable/generate', label: 'Generate', icon: WandSparkles, roles: ['super_admin', 'hod'] },
+  { href: '/timetable', label: 'Timetable', icon: CalendarDays, roles: ['super_admin', 'hod', 'faculty', 'student'] },
+  { href: '/timetable/master', label: 'Master', icon: Table2, roles: ['super_admin', 'hod'] },
+  { href: '/about', label: 'About', icon: Info, roles: ['super_admin', 'hod', 'faculty', 'student'] },
+  { href: '/settings', label: 'Settings', icon: Settings, roles: ['super_admin', 'hod', 'faculty', 'student'] },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { user, logout, isLoading } = useAuth();
 
   useEffect(() => {
     if (!isLoading && !user) router.replace('/login');
   }, [isLoading, user, router]);
 
+  useEffect(() => {
+    if (!isLoading || user) return;
+    const fallback = window.setTimeout(() => window.location.replace('/login'), 5000);
+    return () => window.clearTimeout(fallback);
+  }, [isLoading, user]);
+
+  useEffect(() => setMobileOpen(false), [pathname]);
+
   if (isLoading || !user) {
-    return <div className="loading-screen">Loading SmartSchedule...</div>;
+    return (
+      <div className="app-loading" role="status" aria-live="polite" aria-atomic="true">
+        <LoaderCircle className="session-spinner" size={28} aria-hidden="true" />
+        <div className="loading-copy">
+          <strong>Checking your session</strong>
+          <span>You will be redirected to sign in if needed.</span>
+        </div>
+      </div>
+    );
   }
 
+  const visibleLinks = links.filter(link => link.roles.includes(user.role));
+  const activeHref = visibleLinks
+    .filter(link => link.href === '/dashboard'
+      ? ['/dashboard', '/principal', '/hod', '/student'].includes(pathname)
+      : pathname === link.href || pathname.startsWith(`${link.href}/`))
+    .sort((left, right) => right.href.length - left.href.length)[0]?.href;
+  const crumbs = pathname.split('/').filter(Boolean);
+
+  const sidebar = (
+    <aside className={`app-sidebar ${collapsed ? 'is-collapsed' : ''} ${mobileOpen ? 'is-mobile-open' : ''}`}>
+      <div className="sidebar-brand">
+        <div className="brand-mark"><Sparkles size={19} /></div>
+        {!collapsed && <div><strong>SEC SchedX</strong><span>Academic scheduling system</span><small>AI &amp; DS · Sudharsan Engineering College</small></div>}
+        <button className="mobile-close" onClick={() => setMobileOpen(false)} aria-label="Close navigation"><X size={20} /></button>
+      </div>
+
+      <nav className="sidebar-nav" aria-label="Main navigation">
+        {!collapsed && <p className="nav-eyebrow">Workspace</p>}
+        {visibleLinks.map(({ href, label, icon: Icon }) => {
+          const active = href === activeHref;
+          return (
+            <Link className={`sidebar-link ${active ? 'active' : ''}`} key={href} href={href} title={collapsed ? label : undefined} aria-label={label} aria-current={active ? 'page' : undefined} onClick={() => setMobileOpen(false)}>
+              <Icon size={19} strokeWidth={1.9} />
+              {!collapsed && <span>{label}</span>}
+              {active && <i aria-hidden="true" />}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="sidebar-account">
+        <div className="account-avatar">{user.full_name.slice(0, 1).toUpperCase()}</div>
+        {!collapsed && <div className="account-copy"><strong>{user.full_name}</strong><span>{user.role.replace('_', ' ')}</span></div>}
+        <button className="icon-button dark" onClick={logout} aria-label="Sign out" title="Sign out"><LogOut size={18} /></button>
+      </div>
+    </aside>
+  );
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'var(--font-family)' }}>
-      <aside style={{ width: sidebarOpen ? 260 : 76, background: 'linear-gradient(180deg, #111827 0%, #0f172a 100%)', color: 'white', transition: 'width .2s ease', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', boxShadow: '4px 0 24px rgba(15,23,42,.08)', zIndex: 10 }}>
-        <div style={{ padding: '20px 18px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid rgba(148,163,184,.14)' }}>
-          <div style={{ background: 'linear-gradient(135deg, #3b82f6, #2563eb)', width: 36, height: 36, borderRadius: 10, display: 'grid', placeItems: 'center', fontWeight: 800, boxShadow: '0 6px 16px rgba(37,99,235,.3)', flexShrink: 0 }}>S</div>
-          {sidebarOpen && <strong style={{ fontSize: 16, letterSpacing: '-.01em' }}>SmartSchedule</strong>}
-        </div>
-        <nav style={{ flex: 1, padding: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {links.map(link => {
-            const active = link.href === '/dashboard' ? ['/dashboard', '/principal'].includes(pathname) : pathname.startsWith(link.href);
-            return (
-              <Link key={link.href} href={link.href} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 9, background: active ? 'rgba(59,130,246,.16)' : 'transparent', color: active ? '#f8fafc' : '#a8b3c5', textDecoration: 'none', fontSize: 14, fontWeight: active ? 600 : 500, border: active ? '1px solid rgba(96,165,250,.16)' : '1px solid transparent', transition: 'all .15s ease' }}>
-                <span style={{ width: 22, height: 22, borderRadius: 6, display: 'grid', placeItems: 'center', textAlign: 'center', fontWeight: 700, fontSize: 11, background: active ? '#2563eb' : 'rgba(148,163,184,.1)', color: active ? '#fff' : '#94a3b8', flexShrink: 0 }}>{link.icon}</span>
-                {sidebarOpen && link.label}
-              </Link>
-            );
-          })}
-        </nav>
-        <div style={{ padding: 16, borderTop: '1px solid rgba(148,163,184,.14)' }}>
-          {sidebarOpen && <><div style={{ fontSize: 14, fontWeight: 600 }}>{user.full_name}</div><div style={{ color: '#94a3b8', fontSize: 12, marginBottom: 10, textTransform: 'capitalize' }}>{user.role.replace('_', ' ')}</div></>}
-          <button onClick={logout} style={{ width: '100%', padding: '9px 10px', color: '#cbd5e1', background: 'rgba(148,163,184,.1)', border: '1px solid rgba(148,163,184,.12)', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>Sign out</button>
-        </div>
-      </aside>
-      <main style={{ flex: 1, minWidth: 0, background: 'var(--color-bg)' }}>
-        <header style={{ height: 68, background: 'rgba(255,255,255,.94)', backdropFilter: 'blur(12px)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 16, padding: '0 24px', position: 'sticky', top: 0, zIndex: 5 }}>
-          <button onClick={() => setSidebarOpen(value => !value)} aria-label="Toggle navigation" style={{ width: 36, height: 36, border: '1px solid var(--color-border)', borderRadius: 9, background: '#fff', color: '#475569', fontSize: 18, cursor: 'pointer', display: 'grid', placeItems: 'center', boxShadow: 'var(--shadow-sm)' }}>☰</button>
-          <span style={{ color: '#64748b', fontSize: 14, fontWeight: 500 }}>{pathname.split('/').filter(Boolean).map(part => part[0].toUpperCase() + part.slice(1)).join(' / ') || 'Dashboard'}</span>
+    <div className={`app-shell ${collapsed ? 'sidebar-collapsed' : ''}`}>
+      <a className="skip-link" href="#main-content">Skip to main content</a>
+      {sidebar}
+      {mobileOpen && <button className="sidebar-scrim" onClick={() => setMobileOpen(false)} aria-label="Close navigation overlay" />}
+      <div className="app-main">
+        <header className="app-header">
+          <button className="icon-button desktop-toggle" onClick={() => setCollapsed(value => !value)} aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}>
+            {collapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
+          </button>
+          <button className="icon-button mobile-toggle" onClick={() => setMobileOpen(true)} aria-label="Open navigation"><Menu size={21} /></button>
+          <div className="breadcrumbs" aria-label="Breadcrumb">
+            <Link href="/dashboard"><ChevronLeft size={15} /> Workspace</Link>
+            {crumbs.map(part => <span key={part}>/ {part.replaceAll('-', ' ')}</span>)}
+          </div>
+          <div className="header-status" role="status" aria-label="System status: online"><span aria-hidden="true" /> System online</div>
         </header>
-        {children}
-      </main>
+        <main className="app-content" id="main-content">{children}</main>
+      </div>
     </div>
   );
 }

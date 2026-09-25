@@ -19,5 +19,5 @@ export default function HomePage() {
     router.replace(roleRoutes[user.role] || '/login');
   }, [user, isLoading, router]);
   
-  return <div className="loading-screen">Loading SmartSchedule...</div>;
+  return <div className="loading-screen">Loading SEC SchedX...</div>;
 }

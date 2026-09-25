@@ -1,34 +1,241 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
-import { api } from '@/lib/api';
+
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
+import { BookOpen, CalendarDays, Camera, Download, ImageOff, Plus, Search, Trash2, UserRound, Users, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import TimetableGrid from '@/components/timetable/TimetableGrid';
 import { exportTimetablePdf } from '@/lib/timetable-pdf';
+import { getDefaultSemesterCycle } from '@/lib/preferences';
 
-const periods = [1,2,3,4,5,6,7].map(number => ({ number, label: `P${number}`, start_time: '', end_time: '' }));
+const periods = [1, 2, 3, 4, 5, 6, 7].map(number => ({ number, label: `P${number}`, start_time: '', end_time: '' }));
 
 export default function FacultyPage() {
-  const [faculty, setFaculty] = useState<any[]>([]), [departments, setDepartments] = useState<any[]>([]);
-  const [selected, setSelected] = useState(''), [departmentFilter, setDepartmentFilter] = useState('');
-  const [semesterCycle, setSemesterCycle] = useState<'odd' | 'even'>('odd');
-  const [entries, setEntries] = useState<any[]>([]), [name, setName] = useState(''), [departmentId, setDepartmentId] = useState('');
+  const { user } = useAuth();
+  const canManage = user?.role === 'super_admin' || user?.role === 'hod';
+  const [faculty, setFaculty] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [entries, setEntries] = useState<any[]>([]);
+  const [selected, setSelected] = useState('');
+  const [departmentTypeFilter, setDepartmentTypeFilter] = useState<'department' | 'lab' | ''>('');
+  const [directoryDepartmentId, setDirectoryDepartmentId] = useState('');
+  const [nameQuery, setNameQuery] = useState('');
+  const [semesterCycle, setSemesterCycle] = useState<'odd' | 'even'>(getDefaultSemesterCycle);
   const [loading, setLoading] = useState(true);
-  const load = async () => { try { const [f, d] = await Promise.all([api.faculty.list() as Promise<any[]>, api.departments.list() as Promise<any[]>]); setFaculty(f || []); setDepartments(d || []); setSelected(v => f.some(x => x.id === v) ? v : ''); } catch (e: any) { toast.error(e.message || 'Could not load faculty'); } finally { setLoading(false); } };
-  useEffect(() => { load(); }, []);
-  useEffect(() => { if (!selected) { setEntries([]); return; } api.timetable.facultyTimetable(selected, semesterCycle).then((data: any) => setEntries(Array.isArray(data) ? data : [])).catch((e: Error) => toast.error(e.message)); }, [selected, semesterCycle]);
-  const visibleFaculty = useMemo(() => faculty.filter(x => !departmentFilter || x.department_id === departmentFilter), [faculty, departmentFilter]);
-  const selectedFaculty = useMemo(() => faculty.find(x => x.id === selected), [faculty, selected]);
-  const gridEntries = entries.map(e => ({ ...e, day_of_week: e.day + 1, period_number: e.period, teacher_name: e.faculty_name, room_name: e.class_label }));
-  const createFaculty = async (event: React.FormEvent) => { event.preventDefault(); try { await api.faculty.create({ name, department_id: departmentId, can_teach_all_classes: false }); setName(''); toast.success('Faculty member added'); await load(); } catch (e: any) { toast.error(e.message); } };
-  const removeFaculty = async (item: any) => { if (!confirm(`Remove ${item.name}?`)) return; try { await api.faculty.delete(item.id); if (selected === item.id) setSelected(''); toast.success('Faculty member removed'); await load(); } catch (e: any) { toast.error(e.message); } };
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [name, setName] = useState('');
+  const [departmentType, setDepartmentType] = useState<'department' | 'lab' | ''>('');
+  const [departmentId, setDepartmentId] = useState('');
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
-  return <div style={{ padding: '2rem', maxWidth: 1400, margin: '0 auto' }}>
-    <h1 style={{ marginBottom: 4 }}>Faculty & Teaching Schedule</h1><p style={{ color: '#64748b', marginTop: 0 }}>Manage faculty, assigned subjects, and weekly teaching periods in one organized view.</p>
-    <div className="card" style={{ margin: '22px 0', display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) minmax(240px, 1fr) minmax(220px, .8fr) auto', gap: 16, alignItems: 'end' }}><div><label className="form-label">Department</label><select className="form-input" value={departmentFilter} onChange={e => { setDepartmentFilter(e.target.value); setSelected(''); }} style={{ marginTop: 6 }}><option value="">Choose a department</option>{departments.map(d => <option key={d.id} value={d.id}>{d.name} ({d.code})</option>)}</select></div><div><label className="form-label">Faculty member</label><select className="form-input" value={selected} disabled={!departmentFilter} onChange={e => setSelected(e.target.value)} style={{ marginTop: 6 }}><option value="">Choose faculty</option>{visibleFaculty.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></div><div><label className="form-label">Semester timetable</label><select className="form-input" value={semesterCycle} onChange={e => setSemesterCycle(e.target.value as 'odd' | 'even')} style={{ marginTop: 6 }}><option value="odd">Odd Semester</option><option value="even">Even Semester</option></select></div><strong style={{ color: '#475569', paddingBottom: 10 }}>{visibleFaculty.length} faculty</strong></div>
-    <form onSubmit={createFaculty} className="card" style={{ display: 'grid', gridTemplateColumns: '2fr 2fr auto', gap: 12, marginBottom: 20 }}><input className="form-input" value={name} onChange={e => setName(e.target.value)} placeholder="Faculty full name" required /><select className="form-input" value={departmentId} onChange={e => setDepartmentId(e.target.value)} required><option value="">Choose a department</option>{departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}</select><button className="btn btn-primary">Add faculty</button></form>
-    {loading ? <div className="card">Loading faculty...</div> : <div style={{ display: 'grid', gridTemplateColumns: '280px minmax(0, 1fr)', gap: 20 }}>
-      <section className="card" style={{ padding: 0, overflow: 'hidden', alignSelf: 'start' }}>{visibleFaculty.map(item => <div key={item.id} onClick={() => setSelected(item.id)} style={{ padding: 15, borderBottom: '1px solid #eef2f7', cursor: 'pointer', background: selected === item.id ? '#f0fdfa' : '#fff', borderLeft: selected === item.id ? '4px solid #0f766e' : '4px solid transparent', display: 'flex', justifyContent: 'space-between', gap: 8 }}><div><strong>{item.name}</strong><div style={{ color: '#64748b', fontSize: 12, marginTop: 4 }}>{item.department?.code || 'Department'} · {item.subjects?.length || 0} subjects</div></div><button onClick={e => { e.stopPropagation(); removeFaculty(item); }} style={{ color: '#dc2626', border: 0, background: 'transparent', cursor: 'pointer' }}>Remove</button></div>)}{!visibleFaculty.length && <p style={{ padding: 20, color: '#64748b' }}>No faculty in this department.</p>}</section>
-      <section className="card" style={{ minWidth: 0 }}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}><div><h2 style={{ margin: 0 }}>{selectedFaculty ? selectedFaculty.name : 'Choose a faculty member'} · {semesterCycle === 'odd' ? 'Odd' : 'Even'} timetable</h2><p style={{ color: '#64748b', margin: '5px 0 0', fontSize: 13 }}>{entries.length} scheduled periods this week</p></div><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{selectedFaculty && entries.length > 0 && <button type="button" className="btn btn-secondary" onClick={() => { try { exportTimetablePdf({ title: `${semesterCycle === 'odd' ? 'Odd' : 'Even'} Faculty Timetable`, subtitle: selectedFaculty.name, entries: gridEntries, periods }); } catch (error: any) { toast.error(error.message); } }}>Export PDF</button>}{(selectedFaculty?.subjects || []).map((s: any) => <span key={s.id} className="badge">{s.code}</span>)}</div></div>{!entries.length ? <div style={{ padding: 36, textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: 10 }}>{selectedFaculty ? `No scheduled classes in the ${semesterCycle} semester timetable.` : 'Choose a department and faculty member to view the timetable.'}</div> : <TimetableGrid entries={gridEntries} periods={periods} workingDays={[1,2,3,4,5]} isEditable={false} compact />}</section>
-    </div>}
-  </div>;
+  const load = async () => {
+    setLoading(true);
+    try {
+      const [people, departmentList, subjectList] = await Promise.all([
+        api.faculty.list() as Promise<any[]>, api.departments.list() as Promise<any[]>, api.subjects.list() as Promise<any[]>,
+      ]);
+      setFaculty(people || []);
+      setDepartments(departmentList || []);
+      setSubjects(subjectList || []);
+      setSelected(current => people.some(item => item.id === current) ? current : '');
+    } catch (error: any) {
+      toast.error(error.message || 'Could not load faculty');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    if (!selected) { setEntries([]); return; }
+    setScheduleLoading(true);
+    api.timetable.facultyTimetable(selected, semesterCycle)
+      .then((data: any) => setEntries(Array.isArray(data) ? data : []))
+      .catch((error: Error) => toast.error(error.message))
+      .finally(() => setScheduleLoading(false));
+  }, [selected, semesterCycle]);
+
+  const departmentKey = (value: string = '') => value.toLowerCase().replace(/laboratory|lab/g, '').replace(/[^a-z0-9]/g, '');
+  const selectedDirectoryDepartment = departments.find(item => item.id === directoryDepartmentId);
+  const linkedLiteratureDepartment = departmentTypeFilter === 'lab' && selectedDirectoryDepartment
+    ? departments.find(item => {
+        if ((item.department_type || 'department') !== 'department') return false;
+        const labKeys = new Set([departmentKey(selectedDirectoryDepartment.code), departmentKey(selectedDirectoryDepartment.name)].filter(Boolean));
+        return labKeys.has(departmentKey(item.code)) || labKeys.has(departmentKey(item.name));
+      })
+    : undefined;
+  const directoryFacultyDepartmentId = linkedLiteratureDepartment?.id || directoryDepartmentId;
+  const linkedLabSubjectIds = new Set(subjects.filter(subject =>
+    subject.department_id === directoryFacultyDepartmentId && subject.type === 'lab'
+  ).map(subject => subject.id));
+
+  const normalizedQuery = nameQuery.trim().toLowerCase();
+  const hasCompleteDepartmentFilter = Boolean(departmentTypeFilter && directoryDepartmentId);
+  const visibleFaculty = (!hasCompleteDepartmentFilter && !normalizedQuery) ? [] : faculty.filter(item => {
+    const matchesDepartment = !hasCompleteDepartmentFilter || (departmentTypeFilter === 'lab'
+      ? (item.subjects || []).some((subject: any) => linkedLabSubjectIds.has(subject.id))
+      : item.department_id === directoryFacultyDepartmentId);
+    return (
+      matchesDepartment &&
+      (!normalizedQuery || item.name.toLowerCase().includes(normalizedQuery))
+    );
+  });
+  const selectedFaculty = faculty.find(item => item.id === selected);
+  const cycleSubjects = (selectedFaculty?.subjects || []).filter((subject: any) =>
+    typeof subject.semester !== 'number' || subject.semester % 2 === (semesterCycle === 'odd' ? 1 : 0)
+  );
+  const selectedDepartment = departments.find(item => item.id === selectedFaculty?.department_id);
+  const addFormDepartments = departments.filter(item => (item.department_type || 'department') === departmentType);
+  const directoryDepartments = departments.filter(item => (item.department_type || 'department') === departmentTypeFilter);
+  const gridEntries = entries.map(entry => ({ ...entry, day_of_week: entry.day + 1, period_number: entry.period, teacher_name: entry.faculty_name, room_name: entry.class_label }));
+
+  const createFaculty = async (event: FormEvent) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      const created: any = await api.faculty.create({ name: name.trim(), department_id: departmentId, can_teach_all_classes: false });
+      setName(''); setDepartmentType(''); setDepartmentId(''); setShowAdd(false);
+      toast.success('Faculty member added');
+      await load();
+      if (created?.id) setSelected(created.id);
+    } catch (error: any) {
+      toast.error(error.message || 'Could not add faculty');
+    } finally { setSaving(false); }
+  };
+
+  const removeFaculty = async (item: any) => {
+    if (!confirm(`Remove ${item.name}? This cannot be undone.`)) return;
+    try {
+      await api.faculty.delete(item.id);
+      if (selected === item.id) setSelected('');
+      toast.success('Faculty member removed');
+      await load();
+    } catch (error: any) { toast.error(error.message || 'Could not remove faculty'); }
+  };
+
+  const updateFacultyPhoto = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file || !selectedFaculty) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Choose a valid image file');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Faculty photo must be smaller than 2 MB');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const photoUrl = String(reader.result || '');
+      try {
+        await api.faculty.update(selectedFaculty.id, { photo_url: photoUrl });
+        setFaculty(current => current.map(item => item.id === selectedFaculty.id ? { ...item, photo_url: photoUrl } : item));
+        toast.success('Faculty profile photo updated');
+      } catch (error: any) {
+        toast.error(error.message || 'Could not update profile photo');
+      }
+    };
+    reader.onerror = () => toast.error('Could not read the selected image');
+    reader.readAsDataURL(file);
+  };
+
+  const removeFacultyPhoto = async () => {
+    if (!selectedFaculty?.photo_url || !confirm(`Remove ${selectedFaculty.name}'s profile photo?`)) return;
+    try {
+      await api.faculty.update(selectedFaculty.id, { photo_url: null });
+      setFaculty(current => current.map(item => item.id === selectedFaculty.id ? { ...item, photo_url: null } : item));
+      toast.success('Faculty profile photo removed');
+    } catch (error: any) {
+      toast.error(error.message || 'Could not remove profile photo');
+    }
+  };
+
+  const exportPdf = () => {
+    if (!selectedFaculty) return;
+    try {
+      exportTimetablePdf({ title: `${semesterCycle === 'odd' ? 'Odd' : 'Even'} Faculty Timetable`, subtitle: selectedFaculty.name, entries: gridEntries, periods });
+    } catch (error: any) { toast.error(error.message); }
+  };
+
+  return (
+    <div className="faculty-page">
+      <header className="faculty-page-header">
+        <div><span className="page-eyebrow">People & workload</span><h1>Faculty directory</h1><p>Choose a department type and department to view all assigned faculty and their weekly schedules.</p></div>
+        {canManage && <button className="btn btn-primary btn-lg" onClick={() => setShowAdd(value => !value)} aria-expanded={showAdd}><Plus size={18} /> Add faculty</button>}
+      </header>
+
+      {showAdd && canManage && (
+        <form className="faculty-add-panel" onSubmit={createFaculty} aria-label="Add faculty member">
+          <div className="add-panel-heading"><div><strong>New faculty member</strong><span>Add basic details now; subjects can be assigned afterward.</span></div><button type="button" className="icon-button" onClick={() => setShowAdd(false)} aria-label="Close add faculty form"><X size={18} /></button></div>
+          <div className="add-panel-fields">
+            <div><label htmlFor="faculty-name">Full name</label><input id="faculty-name" className="form-input" value={name} onChange={event => setName(event.target.value)} placeholder="e.g. Dr. Priya Raman" autoFocus required /></div>
+            <div><label htmlFor="faculty-department-type">Department type</label><select id="faculty-department-type" className="form-input" value={departmentType} onChange={event => { setDepartmentType(event.target.value as 'department' | 'lab' | ''); setDepartmentId(''); }} style={{ color: departmentType ? '#334155' : '#94a3b8' }} required><option value="" disabled hidden>Choose department type</option><option value="department">Literature Department</option><option value="lab">Lab Department</option></select></div>
+            <div><label htmlFor="faculty-department">Department</label><select id="faculty-department" className="form-input" value={departmentId} onChange={event => setDepartmentId(event.target.value)} disabled={!departmentType} style={{ color: departmentId ? '#334155' : '#94a3b8' }} required><option value="" disabled hidden>{departmentType ? `Choose ${departmentType === 'lab' ? 'lab' : 'literature'} department` : 'Choose department type first'}</option>{addFormDepartments.map(item => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}</select></div>
+            <button className="btn btn-primary" disabled={saving}>{saving ? 'Adding…' : 'Add member'}</button>
+          </div>
+        </form>
+      )}
+
+      <div className="faculty-toolbar">
+        <label className="faculty-directory-filter"><span>Department type</span><select value={departmentTypeFilter} onChange={event => { setDepartmentTypeFilter(event.target.value as 'department' | 'lab' | ''); setDirectoryDepartmentId(''); setNameQuery(''); setSelected(''); }} style={{ color: departmentTypeFilter ? '#334155' : '#94a3b8' }}><option value="" disabled hidden>Choose department type</option><option value="department">Literature Department</option><option value="lab">Lab Department</option></select></label>
+        <label className="faculty-directory-filter"><span>Department</span><select value={directoryDepartmentId} onChange={event => { setDirectoryDepartmentId(event.target.value); setNameQuery(''); setSelected(''); }} disabled={!departmentTypeFilter} style={{ color: directoryDepartmentId ? '#334155' : '#94a3b8' }}><option value="" disabled hidden>{departmentTypeFilter ? 'Choose department' : 'Choose department type first'}</option>{directoryDepartments.map(item => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}</select></label>
+        <label className="faculty-search"><Search size={18} aria-hidden="true" /><span className="sr-only">Search faculty by name</span><input value={nameQuery} onChange={event => { setNameQuery(event.target.value); setSelected(''); }} placeholder="Search all faculty by name…" /></label>
+        <div className="faculty-total"><Users size={17} /><strong>{visibleFaculty.length}</strong><span>members</span></div>
+      </div>
+
+      <div className="faculty-layout">
+        <aside className="faculty-list" aria-label="Faculty members">
+          {loading ? Array.from({ length: 5 }).map((_, index) => <div className="faculty-list-skeleton skeleton" key={index} />) : visibleFaculty.map(item => {
+            const active = selected === item.id;
+            return (
+              <button className={`faculty-list-item ${active ? 'active' : ''}`} key={item.id} onClick={() => setSelected(item.id)} aria-pressed={active}>
+                <span className="faculty-avatar">{item.photo_url ? <img src={item.photo_url} alt="" /> : item.name.slice(0, 1).toUpperCase()}</span>
+                <span className="faculty-list-copy"><strong>{item.name}</strong><small>{item.department?.code || departments.find(dept => dept.id === item.department_id)?.code || 'No department'} · {item.subjects?.length || 0} subjects</small></span>
+                <span className="faculty-chevron" aria-hidden="true">›</span>
+              </button>
+            );
+          })}
+          {!loading && !visibleFaculty.length && <div className="faculty-list-empty"><UserRound size={28} /><strong>{nameQuery ? 'No matching faculty' : directoryDepartmentId ? 'No faculty found' : 'Search or choose a department'}</strong><span>{nameQuery ? 'Try a different faculty name.' : directoryDepartmentId ? 'No faculty members are assigned to this department.' : 'Search globally by faculty name, or select a department to browse its faculty.'}</span></div>}
+        </aside>
+
+        <section className="faculty-detail" aria-live="polite">
+          {!selectedFaculty ? (
+            <div className="faculty-detail-empty"><div><UserRound size={34} /></div><h2>Select a faculty member</h2><p>Choose someone from the directory to see their subjects and weekly timetable.</p></div>
+          ) : (
+            <>
+              <div className="faculty-profile">
+                <button type="button" className={`profile-avatar ${canManage ? 'is-editable' : ''}`} onClick={() => canManage && photoInputRef.current?.click()} disabled={!canManage} aria-label={canManage ? `Add or change ${selectedFaculty.name}'s profile photo` : `${selectedFaculty.name}'s profile photo`} title={canManage ? 'Add or change profile photo' : undefined}>
+                  {selectedFaculty.photo_url ? <img src={selectedFaculty.photo_url} alt={`${selectedFaculty.name} profile`} /> : selectedFaculty.name.slice(0, 1).toUpperCase()}
+                  {canManage && <span className="profile-photo-icon"><Camera size={14} /></span>}
+                </button>
+                <input ref={photoInputRef} className="sr-only" type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={updateFacultyPhoto} tabIndex={-1} />
+                <div className="profile-copy"><span>Faculty profile</span><h2>{selectedFaculty.name}</h2><p>{selectedDepartment?.name || selectedFaculty.department?.name || 'Department not assigned'}</p></div>
+                <div className="profile-actions">
+                  <div className="cycle-switch" aria-label="Semester cycle"><button className={semesterCycle === 'odd' ? 'active' : ''} onClick={() => setSemesterCycle('odd')} aria-pressed={semesterCycle === 'odd'}>Odd</button><button className={semesterCycle === 'even' ? 'active' : ''} onClick={() => setSemesterCycle('even')} aria-pressed={semesterCycle === 'even'}>Even</button></div>
+                  {canManage && selectedFaculty.photo_url && <button className="btn btn-secondary" onClick={removeFacultyPhoto}><ImageOff size={16} /> Remove photo</button>}
+                  {!!entries.length && <button className="btn btn-secondary" onClick={exportPdf}><Download size={16} /> Export PDF</button>}
+                  {canManage && <button className="icon-button danger" onClick={() => removeFaculty(selectedFaculty)} aria-label={`Remove ${selectedFaculty.name}`} title="Remove faculty"><Trash2 size={17} /></button>}
+                </div>
+              </div>
+
+              <div className="faculty-metrics">
+                <div><CalendarDays size={18} /><span>Weekly periods</span><strong>{entries.length}</strong></div>
+                <div><BookOpen size={18} /><span>Assigned subjects</span><strong>{cycleSubjects.length}</strong></div>
+              </div>
+
+              {!!cycleSubjects.length && <div className="subject-strip" aria-label={`${semesterCycle} semester assigned subjects`}>{cycleSubjects.map((subject: any) => <span key={subject.id}>{subject.code}<small>{subject.name}</small></span>)}</div>}
+
+              <div className="faculty-schedule-heading"><div><h3>{semesterCycle === 'odd' ? 'Odd' : 'Even'} semester timetable</h3><p>{entries.length} scheduled periods across the week</p></div></div>
+              {scheduleLoading ? <div className="schedule-skeleton skeleton" /> : !entries.length ? <div className="schedule-empty"><CalendarDays size={28} /><strong>No scheduled periods</strong><span>This faculty member has no classes in the selected semester cycle.</span></div> : <div className="faculty-grid-scroll"><TimetableGrid entries={gridEntries} periods={periods} workingDays={[1, 2, 3, 4, 5]} isEditable={false} compact /></div>}
+            </>
+          )}
+        </section>
+      </div>
+    </div>
+  );
 }

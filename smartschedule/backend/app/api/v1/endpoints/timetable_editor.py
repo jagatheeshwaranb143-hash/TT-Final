@@ -2,14 +2,14 @@ import logging
 import uuid
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, update
 
 from app.core.security import require_hod_or_above
 from app.core.exceptions import DataNotFoundError, ValidationError, ConflictError
 from app.db.session import get_db
-from app.models.timetable import TimetableEntry, TimetableVersion
+from app.models.models import TimetableEntry
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -18,14 +18,14 @@ router = APIRouter()
 
 class MoveEntryRequest(BaseModel):
     entry_id: str
-    new_day_of_week: int
-    new_period_number: int
-    version_id: str
+    new_day_of_week: int = Field(ge=0, le=5)
+    new_period_number: int = Field(ge=1, le=12)
+    version_id: Optional[str] = None
 
 class SwapEntriesRequest(BaseModel):
     entry_id_1: str
     entry_id_2: str
-    version_id: str
+    version_id: Optional[str] = None
 
 class SuccessResponse(BaseModel):
     success: bool
@@ -51,9 +51,6 @@ async def move_entry(
     if not entry:
         raise DataNotFoundError("Timetable entry", request.entry_id)
         
-    if str(entry.version_id) != request.version_id:
-        raise ValidationError("Version mismatch between entry and request")
-
     if entry.is_locked:
         raise ConflictError("Cannot move a locked entry. Unlock it first.")
         
@@ -61,9 +58,8 @@ async def move_entry(
     # This is a simplified check, full check is in validate-move
     conflict_query = select(TimetableEntry).where(
         and_(
-            TimetableEntry.version_id == request.version_id,
-            TimetableEntry.day_of_week == request.new_day_of_week,
-            TimetableEntry.period_number == request.new_period_number,
+            TimetableEntry.day == request.new_day_of_week,
+            TimetableEntry.period == request.new_period_number,
             TimetableEntry.id != entry.id
         )
     )
@@ -74,12 +70,10 @@ async def move_entry(
             raise ConflictError("Faculty is already teaching another class at this time.")
         if c.class_id == entry.class_id:
             raise ConflictError("This class already has another subject at this time.")
-        if entry.room_id and c.room_id == entry.room_id:
-            raise ConflictError("Room is already occupied at this time.")
             
     # 3. Apply move
-    entry.day_of_week = request.new_day_of_week
-    entry.period_number = request.new_period_number
+    entry.day = request.new_day_of_week
+    entry.period = request.new_period_number
     
     await db.commit()
     return SuccessResponse(success=True, message="Entry moved successfully.")
@@ -104,9 +98,6 @@ async def swap_entries(
     if not entry1 or not entry2:
         raise DataNotFoundError("Timetable entry", "One or both entries not found")
         
-    if str(entry1.version_id) != request.version_id or str(entry2.version_id) != request.version_id:
-        raise ValidationError("Version mismatch")
-        
     if entry1.is_locked or entry2.is_locked:
         raise ConflictError("Cannot swap locked entries. Unlock them first.")
         
@@ -118,14 +109,14 @@ async def swap_entries(
         raise ConflictError("Swapping entries from different classes AND different faculties is not supported.")
         
     # Perform swap
-    day1, period1 = entry1.day_of_week, entry1.period_number
-    day2, period2 = entry2.day_of_week, entry2.period_number
+    day1, period1 = entry1.day, entry1.period
+    day2, period2 = entry2.day, entry2.period
     
-    entry1.day_of_week = day2
-    entry1.period_number = period2
+    entry1.day = day2
+    entry1.period = period2
     
-    entry2.day_of_week = day1
-    entry2.period_number = period1
+    entry2.day = day1
+    entry2.period = period1
     
     await db.commit()
     return SuccessResponse(success=True, message="Entries swapped successfully.")

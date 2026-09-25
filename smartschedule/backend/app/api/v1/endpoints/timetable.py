@@ -1,5 +1,6 @@
 """Timetable endpoint — generate, view master, view faculty, manual edit."""
 import uuid
+import json
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, func
@@ -9,9 +10,9 @@ from typing import Optional
 
 from app.db.session import get_db
 from app.models.models import (
-    Class, ClassSubject, FacultySubject, TimetableEntry, Subject, Faculty, Department
+    Class, ClassSubject, FacultySubject, TimetableEntry, Subject, Faculty, Department, WorkspaceSettings
 )
-from app.core.security import get_current_user
+from app.core.security import get_current_user, require_hod_or_above
 
 router = APIRouter()
 
@@ -127,7 +128,7 @@ async def _get_entries(
 async def generate_timetable(
     req: GenerateRequest,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user=Depends(require_hod_or_above()),
 ):
     """Run the CP-SAT solver for the given filter and store results."""
     # Validate workflow references before doing database work. A stage may use
@@ -268,7 +269,9 @@ async def generate_timetable(
             assignments_added = True
 
     if assignments_added:
-        await db.commit()
+        # Keep automatically created mappings in the same transaction as the
+        # generated timetable. A failed solve must not leave partial setup.
+        await db.flush()
         db.expire_all()
         result = await db.execute(q)
         classes = result.scalars().all()
@@ -349,27 +352,82 @@ async def generate_timetable(
         occupied_query = occupied_query.where(Class.semester % 2 == req.semester % 2)
 
     occupied_result = await db.execute(occupied_query)
+    occupied_rows = occupied_result.all()
     blocked_faculty_slots = {
         (faculty_id, day, period)
-        for faculty_id, day, period in occupied_result.all()
+        for faculty_id, day, period in occupied_rows
         if faculty_id is not None
     }
 
     # 3. Run solver
-    available_days = list(range(5))
-    if getattr(current_user, "college_id", None):
-        from app.models.period import WorkingDay
-        working_day_result = await db.execute(select(WorkingDay.day_of_week).where(
-            WorkingDay.college_id == current_user.college_id,
-            WorkingDay.is_working == True,
-        ))
-        configured_days = [day - 1 for day, in working_day_result.all() if 1 <= day <= 6]
-        if configured_days:
-            available_days = configured_days
+    settings_record = await db.get(WorkspaceSettings, "default")
+    saved_settings = json.loads(settings_record.settings_json or "{}") if settings_record else {}
+    timetable_settings = saved_settings.get("timetable", {})
+    configured_working_days = timetable_settings.get("workingDays", [1, 2, 3, 4, 5])
+    available_days = [day - 1 for day in configured_working_days if 1 <= day <= 6] or list(range(5))
+    periods_per_day = max(1, min(12, int(timetable_settings.get("periodsPerDay", 7))))
+    weekly_capacity = len(available_days) * periods_per_day
+
+    # Reject impossible class and faculty workloads before asking CP-SAT to
+    # solve. Workload is cycle-aware: Odd and Even semesters are separate
+    # academic terms, while departments in the same cycle share faculty.
+    target_faculty_workload: dict[str, int] = {}
+    for class_input in class_inputs:
+        class_total = sum(subject.periods_per_week for subject in class_input.subjects)
+        if class_total > weekly_capacity:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"{class_input.class_label} requires {class_total} periods but only "
+                    f"{weekly_capacity} weekly slots are configured. Reduce subject periods."
+                ),
+            )
+        for subject in class_input.subjects:
+            if subject.faculty_id:
+                target_faculty_workload[subject.faculty_id] = (
+                    target_faculty_workload.get(subject.faculty_id, 0)
+                    + subject.periods_per_week
+                )
+
+    occupied_counts: dict[tuple[str, int, int], int] = {}
+    for faculty_id, day, period in occupied_rows:
+        if faculty_id in target_faculty_workload:
+            key = (faculty_id, day, period)
+            occupied_counts[key] = occupied_counts.get(key, 0) + 1
+    existing_duplicate = next((key for key, count in occupied_counts.items() if count > 1), None)
+    if existing_duplicate:
+        faculty = await db.get(Faculty, existing_duplicate[0])
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"{faculty.name if faculty else 'Faculty'} already has conflicting "
+                "classes in this semester cycle. Resolve the existing timetable first."
+            ),
+        )
+
+    occupied_by_faculty: dict[str, int] = {}
+    for faculty_id, _day, _period in blocked_faculty_slots:
+        if faculty_id in target_faculty_workload:
+            occupied_by_faculty[faculty_id] = occupied_by_faculty.get(faculty_id, 0) + 1
+    for faculty_id, required in target_faculty_workload.items():
+        occupied = occupied_by_faculty.get(faculty_id, 0)
+        if occupied + required > weekly_capacity:
+            faculty = await db.get(Faculty, faculty_id)
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"{faculty.name if faculty else 'Faculty'} requires {required} new periods "
+                    f"and already has {occupied} occupied slots in this semester cycle, "
+                    f"but only {weekly_capacity} slots are available. Reassign at least "
+                    f"{occupied + required - weekly_capacity} periods."
+                ),
+            )
+
     schedule = run_solver(
         class_inputs,
         blocked_faculty_slots=blocked_faculty_slots,
         available_days=available_days,
+        available_periods=list(range(1, periods_per_day + 1)),
     )
 
     if schedule.status == "INFEASIBLE":
@@ -436,6 +494,40 @@ async def generate_timetable(
             is_locked=False,
         ))
 
+    # Validate the database state produced by the transaction, not only the
+    # in-memory solver result. This protects against stale inputs and future
+    # solver regressions. Only the active Odd/Even cycle is compared.
+    await db.flush()
+    impacted_faculty_ids = list(target_faculty_workload)
+    if impacted_faculty_ids and req.semester is not None:
+        collision_result = await db.execute(
+            select(
+                TimetableEntry.faculty_id,
+                TimetableEntry.day,
+                TimetableEntry.period,
+                func.count(TimetableEntry.id).label("entry_count"),
+            )
+            .join(Class, Class.id == TimetableEntry.class_id)
+            .where(
+                TimetableEntry.faculty_id.in_(impacted_faculty_ids),
+                Class.semester % 2 == req.semester % 2,
+            )
+            .group_by(TimetableEntry.faculty_id, TimetableEntry.day, TimetableEntry.period)
+            .having(func.count(TimetableEntry.id) > 1)
+            .limit(1)
+        )
+        collision = collision_result.first()
+        if collision:
+            await db.rollback()
+            faculty = await db.get(Faculty, collision.faculty_id)
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    f"Master validation blocked the save: {faculty.name if faculty else 'Faculty'} "
+                    f"has multiple classes on day {collision.day + 1}, Period {collision.period}."
+                ),
+            )
+
     await db.commit()
 
     return GenerateResponse(
@@ -450,7 +542,7 @@ async def generate_timetable(
 async def master_timetable(
     department_id: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_hod_or_above()),
 ):
     """Return all timetable entries (optionally filtered by department)."""
     if department_id:
@@ -517,7 +609,7 @@ async def edit_entry(
     entry_id: str,
     body: EntryEdit,
     db: AsyncSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_hod_or_above()),
 ):
     """Manually edit a timetable entry with conflict re-validation."""
     result = await db.execute(
@@ -630,7 +722,7 @@ async def edit_entry(
 async def create_manual_entry(
     body: ManualEntryCreate,
     db: AsyncSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_hod_or_above()),
 ):
     """Fill an empty timetable cell with a subject assigned to the class."""
     if body.day not in range(6) or body.period not in range(1, 8):
@@ -706,7 +798,7 @@ async def create_manual_entry(
 async def delete_manual_entry(
     entry_id: str,
     db: AsyncSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_hod_or_above()),
 ):
     entry = await db.get(TimetableEntry, entry_id)
     if not entry:
@@ -715,6 +807,40 @@ async def delete_manual_entry(
         raise HTTPException(status_code=400, detail="This entry is locked and cannot be removed")
     await db.delete(entry)
     await db.commit()
+
+
+@router.delete("/class/{class_id}/entries")
+async def clear_class_timetable(
+    class_id: str,
+    db: AsyncSession = Depends(get_db),
+    _=Depends(require_hod_or_above()),
+):
+    """Clear this class and later schedules that depend on its occupied slots."""
+    class_ = await db.get(Class, class_id)
+    if not class_:
+        raise HTTPException(status_code=404, detail="Class not found")
+    dependent_classes = await db.execute(
+        select(Class.id).where(
+            Class.department_id == class_.department_id,
+            Class.semester % 2 == class_.semester % 2,
+            Class.semester >= class_.semester,
+        )
+    )
+    class_ids = list(dependent_classes.scalars().all())
+    result = await db.execute(
+        delete(TimetableEntry)
+        .where(TimetableEntry.class_id.in_(class_ids))
+        .returning(TimetableEntry.id)
+    )
+    deleted = len(result.scalars().all())
+    await db.commit()
+    return {
+        "class_id": class_id,
+        "classes_cleared": len(class_ids),
+        "entries_deleted": deleted,
+        "from_semester": class_.semester,
+        "semester_cycle": "even" if class_.semester % 2 == 0 else "odd",
+    }
 
 
 @router.get("/stats")

@@ -1,4 +1,7 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useId, useRef } from 'react';
+import { X } from 'lucide-react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -10,26 +13,49 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, onClose, title, children, size = 'md', footer }: ModalProps) {
-  if (!isOpen) return null;
-  
+  const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
   const sizes = { sm: '300px', md: '500px', lg: '800px', xl: '1140px' };
 
+  useEffect(() => {
+    if (!isOpen) return;
+    returnFocusRef.current = document.activeElement as HTMLElement;
+    const dialog = dialogRef.current;
+    const focusable = dialog?.querySelector<HTMLElement>('button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])');
+    requestAnimationFrame(() => (focusable || dialog)?.focus());
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+      if (event.key !== 'Tab' || !dialog) return;
+      const items = Array.from(dialog.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [href], [tabindex]:not([tabindex="-1"])'));
+      if (!items.length) return;
+      const first = items[0], last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      returnFocusRef.current?.focus();
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
-      <div className="card" style={{ position: 'relative', width: '100%', maxWidth: sizes[size], maxHeight: '90vh', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
-        <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>{title}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--color-text-muted)' }}>&times;</button>
+    <div className="modal-layer" role="presentation">
+      <button className="modal-backdrop" onClick={onClose} aria-label="Close dialog" tabIndex={-1} />
+      <div ref={dialogRef} className="card modal-dialog" role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} style={{ maxWidth: sizes[size] }}>
+        <div className="modal-header">
+          <h2 id={titleId}>{title}</h2>
+          <button type="button" className="icon-button" onClick={onClose} aria-label={`Close ${title}`}><X size={20} /></button>
         </div>
-        <div style={{ padding: '1.5rem', overflowY: 'auto' }}>
-          {children}
-        </div>
-        {footer && (
-          <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid var(--color-border)', background: 'var(--color-surface-hover)', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-            {footer}
-          </div>
-        )}
+        <div className="modal-body">{children}</div>
+        {footer && <div className="modal-footer">{footer}</div>}
       </div>
     </div>
   );

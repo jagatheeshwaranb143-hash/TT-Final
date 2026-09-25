@@ -7,8 +7,11 @@ from pydantic import BaseModel
 from typing import Optional, Literal
 
 from app.db.session import get_db
-from app.models.models import Subject, SubjectType, Department, Class, TimetableEntry
-from app.core.security import get_current_user
+from app.models.models import (
+    Subject, SubjectType, Department, Class, ClassSubject, FacultySubject,
+    TimetableEntry,
+)
+from app.core.security import get_current_user, require_hod_or_above
 
 router = APIRouter()
 
@@ -62,7 +65,7 @@ async def list_subjects(
 
 
 @router.post("", response_model=SubjectOut, status_code=status.HTTP_201_CREATED)
-async def create_subject(body: SubjectCreate, db: AsyncSession = Depends(get_db), _=Depends(get_current_user)):
+async def create_subject(body: SubjectCreate, db: AsyncSession = Depends(get_db), _=Depends(require_hod_or_above())):
     dept = await db.get(Department, body.department_id)
     if not dept:
         raise HTTPException(status_code=404, detail="Department not found")
@@ -92,7 +95,7 @@ async def get_subject(subject_id: str, db: AsyncSession = Depends(get_db), _=Dep
 
 
 @router.put("/{subject_id}", response_model=SubjectOut)
-async def update_subject(subject_id: str, body: SubjectUpdate, db: AsyncSession = Depends(get_db), _=Depends(get_current_user)):
+async def update_subject(subject_id: str, body: SubjectUpdate, db: AsyncSession = Depends(get_db), _=Depends(require_hod_or_above())):
     s = await db.get(Subject, subject_id)
     if not s:
         raise HTTPException(status_code=404, detail="Subject not found")
@@ -132,9 +135,15 @@ async def update_subject(subject_id: str, body: SubjectUpdate, db: AsyncSession 
 
 
 @router.delete("/{subject_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_subject(subject_id: str, db: AsyncSession = Depends(get_db), _=Depends(get_current_user)):
+async def delete_subject(subject_id: str, db: AsyncSession = Depends(get_db), _=Depends(require_hod_or_above())):
     s = await db.get(Subject, subject_id)
     if not s:
         raise HTTPException(status_code=404, detail="Subject not found")
-    await db.delete(s)
+    # Timetable rows require a subject_id, so remove generated slots and all
+    # subject assignments before deleting the subject itself. Relying on the
+    # ORM relationship would try to set timetable_entries.subject_id to NULL.
+    await db.execute(delete(TimetableEntry).where(TimetableEntry.subject_id == subject_id))
+    await db.execute(delete(ClassSubject).where(ClassSubject.subject_id == subject_id))
+    await db.execute(delete(FacultySubject).where(FacultySubject.subject_id == subject_id))
+    await db.execute(delete(Subject).where(Subject.id == subject_id))
     await db.commit()

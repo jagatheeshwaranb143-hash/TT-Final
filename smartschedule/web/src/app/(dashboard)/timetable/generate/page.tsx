@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { api } from '@/lib/api';
+import { getDefaultSemesterCycle } from '@/lib/preferences';
 
 type SemesterCycle = 'odd' | 'even';
 type StageStatus = 'waiting' | 'generating' | 'completed' | 'failed';
@@ -31,12 +32,25 @@ const ordinal = (year: number) => {
 export default function GenerateTimetablePage() {
   const [classes, setClasses] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
+  const [departmentType, setDepartmentType] = useState<'department' | 'lab' | ''>('');
   const [departmentId, setDepartmentId] = useState('');
-  const [cycle, setCycle] = useState<SemesterCycle>('odd');
+  const [cycle, setCycle] = useState<SemesterCycle>(getDefaultSemesterCycle);
   const [statuses, setStatuses] = useState<Record<number, StageStatus>>({});
   const [results, setResults] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const departmentKey = (value: string = '') => value.toLowerCase().replace(/laboratory|lab/g, '').replace(/[^a-z0-9]/g, '');
+  const selectedDepartment = departments.find(item => item.id === departmentId);
+  const linkedLiteratureDepartment = departmentType === 'lab' && selectedDepartment
+    ? departments.find(item => {
+        if ((item.department_type || 'department') !== 'department') return false;
+        const labKeys = new Set([departmentKey(selectedDepartment.code), departmentKey(selectedDepartment.name)].filter(Boolean));
+        return labKeys.has(departmentKey(item.code)) || labKeys.has(departmentKey(item.name));
+      })
+    : undefined;
+  const activeDepartmentId = linkedLiteratureDepartment?.id || departmentId;
 
   useEffect(() => {
     Promise.all([api.departments.list(), api.classes.list()])
@@ -45,27 +59,35 @@ export default function GenerateTimetablePage() {
         const classList = Array.isArray(classData) ? classData : [];
         setDepartments(departmentList);
         setClasses(classList);
-        setDepartmentId(departmentList[0]?.id || '');
+        const requestedClass = classList.find(item => item.id === searchParams.get('class_id'));
+        const requestedDepartmentId = searchParams.get('department_id') || requestedClass?.department_id || '';
+        const requestedDepartment = departmentList.find(item => item.id === requestedDepartmentId);
+        if (requestedDepartment) {
+          setDepartmentType((searchParams.get('department_type') as 'department' | 'lab') || requestedDepartment.department_type || 'department');
+          setDepartmentId(requestedDepartmentId);
+          const requestedCycle = searchParams.get('cycle');
+          setCycle(requestedCycle === 'even' || requestedCycle === 'odd' ? requestedCycle : (requestedClass?.semester % 2 === 0 ? 'even' : 'odd'));
+        }
       })
       .catch((error: Error) => toast.error(error.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     setStatuses({});
     setResults({});
-    if (!departmentId) return;
-    api.timetable.master(departmentId)
+    if (!activeDepartmentId || !cycle) return;
+    api.timetable.master(activeDepartmentId)
       .then((entries: any) => {
         const classSemester = new Map(
           classes
-            .filter(item => item.department_id === departmentId)
+            .filter(item => item.department_id === activeDepartmentId)
             .map(item => [item.id, item.semester]),
         );
         const counts: Record<number, number> = {};
         for (const entry of Array.isArray(entries) ? entries : []) {
           const semester = classSemester.get(entry.class_id);
-          if (typeof semester === 'number' && semester % 2 === (cycle === 'odd' ? 1 : 0)) {
+          if (typeof semester === 'number' && semester % 2 === (cycle === 'odd' ? 1 : 0) && (departmentType !== 'lab' || entry.subject_type === 'lab')) {
             counts[semester] = (counts[semester] || 0) + 1;
           }
         }
@@ -73,23 +95,27 @@ export default function GenerateTimetablePage() {
         setStatuses(Object.fromEntries(Object.keys(counts).map(value => [Number(value), 'completed'])));
       })
       .catch((error: Error) => toast.error(error.message));
-  }, [departmentId, cycle, classes]);
+  }, [activeDepartmentId, cycle, classes, departmentType]);
 
-  const semesters = CYCLES[cycle];
+  const semesters = cycle ? CYCLES[cycle] : [];
+  const filteredDepartments = useMemo(
+    () => departments.filter(item => (item.department_type || 'department') === departmentType),
+    [departments, departmentType],
+  );
   const departmentClasses = useMemo(
-    () => classes.filter(item => item.department_id === departmentId),
-    [classes, departmentId],
+    () => classes.filter(item => item.department_id === activeDepartmentId),
+    [classes, activeDepartmentId],
   );
   const classesForSemester = (semester: number) =>
     departmentClasses.filter(item => item.semester === semester);
 
   const generateSemester = async (semester: number) => {
-    if (!departmentId || classesForSemester(semester).length === 0) return;
+    if (!activeDepartmentId || classesForSemester(semester).length === 0) return;
     setStatuses(previous => ({ ...previous, [semester]: 'generating' }));
     try {
       const referenceSemesters = semesters.filter(value => value < semester && statuses[value] === 'completed');
       const result: any = await api.timetable.generate({
-        department_id: departmentId,
+        department_id: activeDepartmentId,
         semester,
         reference_semesters: referenceSemesters,
       });
@@ -99,8 +125,15 @@ export default function GenerateTimetablePage() {
         Object.entries({ ...previous, [semester]: 'completed' })
           .filter(([value]) => Number(value) <= semester),
       ) as Record<number, StageStatus>);
+      const generatedEntries: any[] = departmentType === 'lab'
+        ? await api.timetable.master(activeDepartmentId) as any[]
+        : [];
+      const stageClassIds = new Set(classesForSemester(semester).map(item => item.id));
+      const entriesCreated = departmentType === 'lab'
+        ? generatedEntries.filter(entry => stageClassIds.has(entry.class_id) && entry.subject_type === 'lab').length
+        : result.entries_created || 0;
       setResults(previous => Object.fromEntries(
-        Object.entries({ ...previous, [semester]: result.entries_created || 0 })
+        Object.entries({ ...previous, [semester]: entriesCreated })
           .filter(([value]) => Number(value) <= semester),
       ) as Record<number, number>);
       toast.success(`Semester ${semester} fixed as the period and faculty reference for the next stage`);
@@ -110,10 +143,44 @@ export default function GenerateTimetablePage() {
     }
   };
 
+  const generateLabCycle = async () => {
+    if (!activeDepartmentId || isGenerating) return;
+    const missingSemester = semesters.find(semester => classesForSemester(semester).length === 0);
+    if (missingSemester) {
+      toast.error(`Add a class for Semester ${missingSemester} before generating the ${cycle} lab timetable.`);
+      return;
+    }
+    try {
+      setStatuses(Object.fromEntries(semesters.map(semester => [semester, 'generating'])) as Record<number, StageStatus>);
+      for (const semester of semesters) {
+        await api.timetable.generate({
+          department_id: activeDepartmentId,
+          semester,
+          reference_semesters: semesters.filter(value => value < semester),
+        });
+        setStatuses(previous => ({ ...previous, [semester]: 'completed' }));
+      }
+      const generatedEntries = await api.timetable.master(activeDepartmentId) as any[];
+      const classSemester = new Map(departmentClasses.map(item => [item.id, item.semester]));
+      const labCounts: Record<number, number> = {};
+      generatedEntries.filter(entry => entry.subject_type === 'lab').forEach(entry => {
+        const semester = classSemester.get(entry.class_id);
+        if (typeof semester === 'number' && semesters.includes(semester)) labCounts[semester] = (labCounts[semester] || 0) + 1;
+      });
+      setResults(labCounts);
+      toast.success(`${cycle === 'odd' ? 'Odd' : 'Even'} semester lab timetable generated`);
+    } catch (error: any) {
+      setStatuses(previous => Object.fromEntries(Object.entries(previous).map(([semester, status]) => [semester, status === 'generating' ? 'failed' : status])) as Record<number, StageStatus>);
+      toast.error(error.message || 'Could not generate the lab timetable');
+    }
+  };
+
   // Do not skip a missing default or intermediate stage. The selected cycle
   // must be completed strictly from top to bottom.
   const nextSemester = semesters.find(semester => statuses[semester] !== 'completed');
   const isGenerating = Object.values(statuses).some(status => status === 'generating');
+  const labPeriodCount = semesters.reduce((total, semester) => total + (results[semester] || 0), 0);
+  const labTimetableReady = labPeriodCount > 0;
   const selectWorkflow = (selectedCycle: SemesterCycle) => {
     if (isGenerating || selectedCycle === cycle) return;
     setStatuses({});
@@ -140,38 +207,68 @@ export default function GenerateTimetablePage() {
       ) : (
         <>
           <div className="card" style={{ padding: 24, marginBottom: 20 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 1fr) minmax(320px, 1.4fr)', gap: 20, alignItems: 'end' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 20, alignItems: 'end' }}>
               <div>
-                <label className="form-label" htmlFor="department-selector">Department</label>
-                <select id="department-selector" className="form-input" value={departmentId} onChange={event => setDepartmentId(event.target.value)} style={{ marginTop: 7, padding: 12 }}>
-                  <option value="">Choose a department</option>
-                  {departments.map((item: any) => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}
+                <label className="form-label" htmlFor="department-type-selector">Department type</label>
+                <select id="department-type-selector" className="form-input" value={departmentType} onChange={event => { setDepartmentType(event.target.value as 'department' | 'lab' | ''); setDepartmentId(''); setCycle(getDefaultSemesterCycle()); }} disabled={isGenerating} style={{ marginTop: 7, padding: 12 }}>
+                  <option value="" disabled hidden>Choose department type</option>
+                  <option value="department">Literature Department</option>
+                  <option value="lab">Lab Department</option>
                 </select>
               </div>
               <div>
-                <label className="form-label">Choose semester type</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 7 }}>
-                  {WORKFLOW_OPTIONS.map(option => {
-                    const active = cycle === option.cycle;
-                    return (
-                      <button
-                        key={option.cycle}
-                        type="button"
-                        onClick={() => selectWorkflow(option.cycle)}
-                        disabled={isGenerating}
-                        aria-pressed={active}
-                        style={{ padding: '12px 14px', borderRadius: 9, cursor: isGenerating ? 'not-allowed' : 'pointer', textAlign: 'left', border: active ? '2px solid #0f766e' : '1px solid #cbd5e1', color: active ? '#134e4a' : '#475569', background: active ? '#ccfbf1' : '#fff' }}
-                      >
-                        <span style={{ display: 'block', fontWeight: 800 }}>{option.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+                <label className="form-label" htmlFor="department-selector">Department</label>
+                <select id="department-selector" className="form-input" value={departmentId} onChange={event => { setDepartmentId(event.target.value); setCycle(getDefaultSemesterCycle()); }} disabled={!departmentType || isGenerating} style={{ marginTop: 7, padding: 12 }}>
+                  <option value="" disabled hidden>{departmentType ? 'Choose a department' : 'Choose department type first'}</option>
+                  {filteredDepartments.map((item: any) => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="form-label" htmlFor="semester-type-selector">Choose semester type</label>
+                <select
+                  id="semester-type-selector"
+                  className="form-input"
+                  value={cycle}
+                  onChange={event => selectWorkflow(event.target.value as SemesterCycle)}
+                  disabled={isGenerating || !departmentId}
+                  style={{ marginTop: 7, padding: 12 }}
+                >
+                  {WORKFLOW_OPTIONS.map(option => (
+                    <option key={option.cycle} value={option.cycle}>{option.label}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'grid', gap: 14 }}>
+          {!departmentId ? (
+            <div className="card" style={{ padding: 42, textAlign: 'center' }}>
+              <h2 style={{ color: '#0f172a', fontSize: 20 }}>Choose a department</h2>
+              <p style={{ color: '#64748b', marginTop: 8 }}>Select Literature or Lab Department, then choose a department to build its timetables.</p>
+            </div>
+          ) : departmentType === 'lab' ? (
+            <div className="card" style={{ padding: 26, border: labTimetableReady ? '1px solid #c4b5fd' : '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 22, flexWrap: 'wrap' }}>
+                <div>
+                  <p style={{ color: '#7c3aed', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>Lab timetable</p>
+                  <h2 style={{ color: '#0f172a', fontSize: 21 }}>{cycle === 'odd' ? 'Odd' : 'Even'} Semester Lab Timetable</h2>
+                  <p style={{ color: '#64748b', fontSize: 13, marginTop: 7 }}>{selectedDepartment?.name || 'Selected lab'} · {labTimetableReady ? `${labPeriodCount} lab periods generated` : 'Generate all lab periods in one timetable'}</p>
+                  {linkedLiteratureDepartment && <p style={{ color: '#7c3aed', fontSize: 12, marginTop: 5 }}>Uses classes and lab subjects from {linkedLiteratureDepartment.name} ({linkedLiteratureDepartment.code})</p>}
+                  {!linkedLiteratureDepartment && <p style={{ color: '#dc2626', fontSize: 12, marginTop: 5 }}>No matching Literature department found for this lab.</p>}
+                </div>
+                <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap' }}>
+                  {labTimetableReady && <button type="button" className="btn btn-secondary" onClick={() => router.push(`/timetable/lab?department_id=${encodeURIComponent(activeDepartmentId)}&lab_name=${encodeURIComponent(selectedDepartment?.name || 'Lab')}&cycle=${cycle}`)}>View</button>}
+                  <button type="button" className="btn btn-primary" onClick={generateLabCycle} disabled={isGenerating || !linkedLiteratureDepartment}>
+                    {isGenerating ? 'Generating...' : labTimetableReady ? 'Regenerate Lab Timetable' : 'Generate Lab Timetable'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : <div style={{ display: 'grid', gap: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+              <h2 style={{ color: '#0f172a', fontSize: 20 }}>{cycle === 'odd' ? 'Odd' : 'Even'} semester timetable stages</h2>
+              <span style={{ color: '#64748b', fontSize: 13 }}>{semesters.map(value => `Semester ${value}`).join(' → ')}</span>
+            </div>
             {semesters.map((semester, index) => {
               const stageClasses = classesForSemester(semester);
               const status = statuses[semester] || 'waiting';
@@ -205,7 +302,7 @@ export default function GenerateTimetablePage() {
                 </div>
               );
             })}
-          </div>
+          </div>}
         </>
       )}
     </div>

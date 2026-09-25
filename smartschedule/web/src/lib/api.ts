@@ -27,7 +27,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(error.detail || error.message || `Request failed with status ${response.status}`);
+    const detail = Array.isArray(error.detail)
+      ? error.detail.map((item: any) => `${Array.isArray(item.loc) ? item.loc.slice(1).join('.') : 'Request'}: ${item.msg || 'Invalid value'}`).join('; ')
+      : error.detail;
+    throw new Error(detail || error.message || `Request failed with status ${response.status}`);
   }
   if (response.status === 204) return undefined as T;
   return response.json();
@@ -37,22 +40,15 @@ export const api = {
   auth: {
     login: (email: string, password: string) => request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
     me: () => request('/auth/me'),
+    changePassword: (currentPassword: string, newPassword: string) => request('/auth/change-password', { method: 'POST', body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }) }),
     logout: () => request('/auth/logout', { method: 'POST' }),
+  },
+  settings: {
+    get: () => request('/settings'),
+    save: (data: unknown) => request('/settings', { method: 'PUT', body: JSON.stringify(data) }),
   },
   setup: {
     status: () => request('/users/setup-status'),
-  },
-  colleges: {
-    list: () => request('/colleges'),
-    create: (data: unknown) => request('/colleges', { method: 'POST', body: JSON.stringify(data) }),
-    get: (id: string) => request(`/colleges/${id}`),
-    update: (id: string, data: unknown) => request(`/colleges/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-  },
-  academicYears: {
-    list: () => request('/academic-years'),
-    create: (data: unknown) => request('/academic-years', { method: 'POST', body: JSON.stringify(data) }),
-    semesters: (yearId: string) => request(`/academic-years/${yearId}/semesters`),
-    createSemester: (yearId: string, data: unknown) => request(`/academic-years/${yearId}/semesters`, { method: 'POST', body: JSON.stringify(data) }),
   },
   departments: {
     list: () => request('/departments'),
@@ -84,22 +80,6 @@ export const api = {
     delete: (id: string) => request(`/subjects/${id}`, { method: 'DELETE' }),
     types: () => request('/subjects/types'),
   },
-  rooms: {
-    list: (params?: Record<string, string>) => request(`/rooms?${new URLSearchParams(params).toString()}`),
-    create: (data: unknown) => request('/rooms', { method: 'POST', body: JSON.stringify(data) }),
-    get: (id: string) => request(`/rooms/${id}`),
-    update: (id: string, data: unknown) => request(`/rooms/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-    delete: (id: string) => request(`/rooms/${id}`, { method: 'DELETE' }),
-    buildings: () => request('/rooms/buildings'),
-    types: () => request('/rooms/types'),
-  },
-  labs: {
-    list: () => request('/laboratories'),
-    create: (data: unknown) => request('/laboratories', { method: 'POST', body: JSON.stringify(data) }),
-    get: (id: string) => request(`/laboratories/${id}`),
-    update: (id: string, data: unknown) => request(`/laboratories/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-    delete: (id: string) => request(`/laboratories/${id}`, { method: 'DELETE' }),
-  },
   classes: {
     list: (params?: Record<string, string>) => request(`/classes?${new URLSearchParams(params).toString()}`),
     create: (data: unknown) => request('/classes', { method: 'POST', body: JSON.stringify(data) }),
@@ -107,14 +87,6 @@ export const api = {
     update: (id: string, data: unknown) => request(`/classes/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: (id: string) => request(`/classes/${id}`, { method: 'DELETE' }),
     assignSubjects: (id: string, data: unknown) => request(`/classes/${id}/subjects`, { method: 'POST', body: JSON.stringify(data) }),
-  },
-  periods: {
-    workingDays: () => request('/periods/working-days'),
-    setWorkingDays: (data: unknown) => request('/periods/working-days', { method: 'POST', body: JSON.stringify(data) }),
-    configurations: () => request('/periods/configurations'),
-    createConfig: (data: unknown) => request('/periods/configurations', { method: 'POST', body: JSON.stringify(data) }),
-    periods: (configId: string) => request(`/periods/configurations/${configId}/periods`),
-    addPeriod: (configId: string, data: unknown) => request(`/periods/configurations/${configId}/periods`, { method: 'POST', body: JSON.stringify(data) }),
   },
   timetable: {
     validateData: (deptId: string, semId: string, yearId: string) => request(`/timetable/validate-data?department_id=${deptId}&semester_id=${semId}&academic_year_id=${yearId}`),
@@ -125,30 +97,17 @@ export const api = {
     editEntry: (entryId: string, data: unknown) => request(`/timetable/entry/${entryId}`, { method: 'PUT', body: JSON.stringify(data) }),
     createEntry: (data: unknown) => request('/timetable/entry', { method: 'POST', body: JSON.stringify(data) }),
     deleteEntry: (entryId: string) => request(`/timetable/entry/${entryId}`, { method: 'DELETE' }),
+    clearClass: (classId: string) => request(`/timetable/class/${classId}/entries`, { method: 'DELETE' }),
     facultyTimetable: (facultyId: string, semesterCycle?: 'odd' | 'even') => request(`/timetable/faculty/${facultyId}${semesterCycle ? `?semester_cycle=${semesterCycle}` : ''}`),
     unassigned: () => request('/timetable/unassigned'),
     validateMove: (data: unknown) => request('/timetable/validate-move', { method: 'POST', body: JSON.stringify(data) }),
     simulate: (data: unknown) => request('/timetable/simulate', { method: 'POST', body: JSON.stringify(data) }),
   },
-  versions: {
-    list: (params?: Record<string, string>) => request(`/versions?${new URLSearchParams(params).toString()}`),
-    approveHod: (id: string, notes?: string) => request(`/versions/${id}/approve-hod`, { method: 'POST', body: JSON.stringify({ notes }) }),
-    approvePrincipal: (id: string, notes?: string) => request(`/versions/${id}/approve-principal`, { method: 'POST', body: JSON.stringify({ notes }) }),
-    validatePublish: (id: string) => request(`/versions/${id}/validate-publish`),
-    publish: (id: string) => request(`/versions/${id}/publish`, { method: 'POST' }),
-    lock: (id: string) => request(`/versions/${id}/lock`, { method: 'POST' }),
-    compare: (aId: string, bId: string) => request(`/versions/${aId}/compare/${bId}`),
-  },
   editor: {
     move: (data: unknown) => request('/timetable/editor/move', { method: 'POST', body: JSON.stringify(data) }),
     swap: (data: unknown) => request('/timetable/editor/swap', { method: 'POST', body: JSON.stringify(data) }),
-    lock: (data: unknown) => request('/timetable/editor/lock', { method: 'POST', body: JSON.stringify(data) }),
-    unlock: (data: unknown) => request('/timetable/editor/unlock', { method: 'POST', body: JSON.stringify(data) }),
-  },
-  reports: {
-    class: (classId: string, format = 'excel') => `${API_BASE}/api/v1/reports/class/${classId}?format=${format}`,
-    faculty: (facultyId: string, format = 'excel') => `${API_BASE}/api/v1/reports/faculty/${facultyId}?format=${format}`,
-    workload: (format = 'excel') => `${API_BASE}/api/v1/reports/workload?format=${format}`,
+    lock: (id: string) => request(`/timetable/editor/lock/${id}`, { method: 'POST' }),
+    unlock: (id: string) => request(`/timetable/editor/unlock/${id}`, { method: 'POST' }),
   },
   dashboard: {
     getPrincipalStats: () => request('/analytics/principal-stats'),
@@ -161,28 +120,8 @@ export const api = {
     conflicts: () => request('/analytics/conflict-trends'),
   },
   search: (q: string, type = 'all') => request(`/search?q=${encodeURIComponent(q)}&type=${type}`),
-  notifications: {
-    list: () => request('/notifications'),
-    count: () => request('/notifications/count'),
-    markRead: (id: string) => request(`/notifications/${id}/read`, { method: 'PATCH' }),
-    markAllRead: () => request('/notifications/read-all', { method: 'PATCH' }),
-  },
   ai: {
     query: (question: string) => request('/ai/query', { method: 'POST', body: JSON.stringify({ question }) }),
-  },
-  import: {
-    validate: (entityType: string, file: File) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      const token = getToken();
-      return fetch(`${API_BASE}/api/v1/import/validate?entity_type=${entityType}`, {
-        method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: formData,
-      }).then(r => r.json());
-    },
-    confirm: (sessionToken: string) => request('/import/confirm', { method: 'POST', body: JSON.stringify({ session_token: sessionToken, confirmed: true }) }),
-    templateUrl: (entityType: string) => `${API_BASE}/api/v1/import/template/${entityType}`,
   },
   deptSetup: {
     departmentsSummary: () => request('/dept-setup/departments-summary'),

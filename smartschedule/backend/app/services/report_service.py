@@ -353,7 +353,7 @@ class ReportService:
 
         # Title
         ws.merge_cells(f"A1:{chr(65 + len(columns) - 1)}1")
-        ws["A1"].value = f"SmartSchedule — {entity_type.capitalize()} Import Template"
+        ws["A1"].value = f"SEC SchedX — {entity_type.capitalize()} Import Template"
         ws["A1"].font = Font(bold=True, size=13)
         ws["A1"].alignment = Alignment(horizontal="center")
 

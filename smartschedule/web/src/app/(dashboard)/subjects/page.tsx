@@ -14,20 +14,39 @@ export default function SubjectsPage() {
   const [formData, setFormData] = useState({
     name: '',
     code: '',
-    subject_type: 'theory',
+    subject_type: '',
     weekly_periods: 3,
-    lab_block_size: 2,
+    lab_block_size: 0,
     department_id: '',
-    year_level: 1,
-    semester: 1,
+    year_level: 0,
+    semester: 0,
     class_id: '',
     faculty_id: '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [facultySchedule, setFacultySchedule] = useState<any[]>([]);
   const [facultyScheduleLoading, setFacultyScheduleLoading] = useState(false);
+  const [selectedDepartmentType, setSelectedDepartmentType] = useState<'department' | 'lab' | ''>('');
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('');
   const [selectedSemester, setSelectedSemester] = useState(1);
+
+  const departmentKey = (value: string = '') => value
+    .toLowerCase()
+    .replace(/laboratory|lab/g, '')
+    .replace(/[^a-z0-9]/g, '');
+
+  const getLiteratureDepartmentForLab = (labDepartmentId: string) => {
+    const labDepartment = departments.find(department => department.id === labDepartmentId);
+    if (!labDepartment) return undefined;
+    const labKeys = new Set([
+      departmentKey(labDepartment.code),
+      departmentKey(labDepartment.name),
+    ].filter(Boolean));
+    return departments.find(department =>
+      (department.department_type || 'department') === 'department' &&
+      (labKeys.has(departmentKey(department.code)) || labKeys.has(departmentKey(department.name))),
+    );
+  };
 
   const loadData = async () => {
     try {
@@ -57,6 +76,7 @@ export default function SubjectsPage() {
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -75,18 +95,24 @@ export default function SubjectsPage() {
   }, [showModal, formData.faculty_id, formData.semester]);
 
   const resetForm = () => {
-    const activeDepartmentId = selectedDeptFilter || departments[0]?.id || '';
-    const activeYear = Math.ceil(selectedSemester / 2);
+    const linkedLiteratureDepartment = selectedDepartmentType === 'lab'
+      ? getLiteratureDepartmentForLab(selectedDeptFilter)
+      : undefined;
+    const activeDepartmentId = linkedLiteratureDepartment?.id || selectedDeptFilter || '';
     setEditingSubjectId(null);
     setFormData({
-      name: '', code: '', subject_type: 'theory', weekly_periods: 3,
-      lab_block_size: 2,
-      department_id: activeDepartmentId, year_level: activeYear, semester: selectedSemester,
+      name: '', code: '', subject_type: '', weekly_periods: 3,
+      lab_block_size: 0,
+      department_id: activeDepartmentId, year_level: 0, semester: 0,
       class_id: '', faculty_id: '',
     });
   };
 
   const openCreate = () => {
+    if (!selectedDepartmentType || !selectedDeptFilter) {
+      toast.error('Choose a department type and department first');
+      return;
+    }
     resetForm();
     setShowModal(true);
   };
@@ -105,7 +131,7 @@ export default function SubjectsPage() {
       department_id: subject.department_id || '',
       year_level: subject.year || 1,
       semester: subject.semester || 1,
-      class_id: '',
+      class_id: 'all',
       faculty_id: assignment?.faculty_id || '',
     });
     setShowModal(true);
@@ -113,13 +139,17 @@ export default function SubjectsPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.code || !formData.department_id) {
+    if (!formData.name || !formData.code || !formData.department_id || !formData.subject_type || !formData.year_level || !formData.semester || !formData.class_id) {
       toast.error('Please fill in all required fields');
       return;
     }
     try {
       setSubmitting(true);
       const isLab = formData.subject_type === 'lab' || formData.subject_type === 'practical';
+      if (isLab && !formData.lab_block_size) {
+        toast.error('Choose a consecutive lab block');
+        return;
+      }
       if (isLab && formData.weekly_periods % formData.lab_block_size !== 0) {
         toast.error('Lab periods per week must be a multiple of the consecutive block size');
         return;
@@ -157,7 +187,7 @@ export default function SubjectsPage() {
         item.department_id === formData.department_id &&
         item.year === formData.year_level &&
         item.semester === formData.semester &&
-        (!formData.class_id || item.id === formData.class_id)
+        (formData.class_id === 'all' || item.id === formData.class_id)
       );
       if (editingSubjectId) {
         const matchingClassIds = new Set(matchingClasses.map(item => item.id));
@@ -209,24 +239,46 @@ export default function SubjectsPage() {
     }
   };
 
+  const selectedLabDepartment = selectedDepartmentType === 'lab'
+    ? departments.find(department => department.id === selectedDeptFilter)
+    : undefined;
+  const linkedLiteratureDepartment = selectedLabDepartment
+    ? getLiteratureDepartmentForLab(selectedLabDepartment.id)
+    : undefined;
+  const subjectDepartmentId = linkedLiteratureDepartment?.id || selectedDeptFilter;
   const filteredSubjects = subjects.filter(s =>
-    (!selectedDeptFilter || s.department_id === selectedDeptFilter) &&
+    Boolean(selectedDepartmentType && selectedDeptFilter) &&
+    s.department_id === subjectDepartmentId &&
+    (selectedDepartmentType !== 'lab' || s.type === 'lab') &&
     s.semester === selectedSemester
   );
   const theorySubjects = filteredSubjects.filter(s => s.type !== 'lab');
   const labSubjects = filteredSubjects.filter(s => s.type === 'lab');
 
-  // Faculty may teach subjects owned by another department.
-  const modalAvailableFaculty = facultyList;
   const selectedFaculty = facultyList.find(f => f.id === formData.faculty_id);
   const selectedFacultyDepartment = departments.find(d => d.id === selectedFaculty?.department_id);
   const selectedSubjectDepartment = departments.find(d => d.id === formData.department_id);
   const isCrossDepartment = Boolean(selectedFaculty && formData.department_id && selectedFaculty.department_id !== formData.department_id);
-  const matchingClasses = classes.filter(item =>
-    item.department_id === formData.department_id &&
-    item.year === formData.year_level &&
-    item.semester === formData.semester
+  const filteredDepartments = departments.filter(
+    department => (department.department_type || 'department') === selectedDepartmentType,
   );
+  const literatureDepartments = departments.filter(
+    department => (department.department_type || 'department') === 'department',
+  );
+  const facultyByDepartment = [...departments]
+    .sort((left, right) =>
+      (left.name || left.code || '').localeCompare(right.name || right.code || '', undefined, { sensitivity: 'base' }),
+    )
+    .map(department => ({
+      department,
+      faculty: facultyList
+        .filter(member => member.department_id === department.id)
+        .sort((left, right) => (left.name || '').localeCompare(right.name || '', undefined, { sensitivity: 'base' })),
+    }))
+    .filter(group => group.faculty.length > 0);
+  const facultyWithoutDepartment = facultyList
+    .filter(member => !departments.some(department => department.id === member.department_id))
+    .sort((left, right) => (left.name || '').localeCompare(right.name || '', undefined, { sensitivity: 'base' }));
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
@@ -239,9 +291,30 @@ export default function SubjectsPage() {
             Configure courses and use Edit to adapt semester, workload, lab blocks, and faculty before regenerating the timetable.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
           {departments.length > 0 && (
+            <div>
+            <label htmlFor="department-type-filter" style={{ display: 'block', marginBottom: 5, color: '#334155', fontSize: 12, fontWeight: 700 }}>Department Type</label>
             <select
+              id="department-type-filter"
+              value={selectedDepartmentType}
+              onChange={(e) => {
+                setSelectedDepartmentType(e.target.value as 'department' | 'lab' | '');
+                setSelectedDeptFilter('');
+              }}
+              style={{ padding: '0.6rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.875rem', background: 'white', fontWeight: 600, color: selectedDepartmentType ? '#334155' : '#94a3b8' }}
+            >
+              <option value="" disabled hidden>Choose department type</option>
+              <option value="department" style={{ color: '#334155' }}>Literature Department</option>
+              <option value="lab" style={{ color: '#334155' }}>Lab Department</option>
+            </select>
+            </div>
+          )}
+          {departments.length > 0 && (
+            <div>
+            <label htmlFor="department-filter" style={{ display: 'block', marginBottom: 5, color: '#334155', fontSize: 12, fontWeight: 700 }}>Department</label>
+            <select
+              id="department-filter"
               value={selectedDeptFilter}
               onChange={(e) => {
                 const departmentId = e.target.value;
@@ -249,11 +322,12 @@ export default function SubjectsPage() {
                 if (!editingSubjectId) {
                   setFormData(prev => ({
                     ...prev,
-                    department_id: departmentId || departments[0]?.id || '',
+                    department_id: departmentId,
                     class_id: '',
                   }));
                 }
               }}
+              disabled={!selectedDepartmentType}
               style={{
                 padding: '0.6rem 1rem',
                 border: '1px solid #cbd5e1',
@@ -261,14 +335,17 @@ export default function SubjectsPage() {
                 fontSize: '0.875rem',
                 background: 'white',
                 fontWeight: 600,
-                color: '#334155',
+                color: selectedDeptFilter ? '#334155' : '#94a3b8',
               }}
             >
-              <option value="">All Departments</option>
-              {departments.map(d => (
-                <option key={d.id} value={d.id}>{d.name} ({d.code})</option>
+              <option value="" disabled hidden>
+                {selectedDepartmentType ? 'Choose department' : 'Choose department type first'}
+              </option>
+              {filteredDepartments.map(d => (
+                <option key={d.id} value={d.id} style={{ color: '#334155' }}>{d.name} ({d.code})</option>
               ))}
             </select>
+            </div>
           )}
           <button
             onClick={openCreate}
@@ -295,7 +372,15 @@ export default function SubjectsPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginBottom: 14 }}>
           <div>
             <strong style={{ color: '#0f172a' }}>Choose semester</strong>
-            <div style={{ color: '#64748b', fontSize: 13, marginTop: 3 }}>Only subjects for the selected semester are shown.</div>
+            <div style={{ color: '#64748b', fontSize: 13, marginTop: 3 }}>
+              {!selectedDeptFilter
+                ? `Semester ${selectedSemester} selected. Choose a department type and department to view its subjects.`
+                : selectedDepartmentType === 'lab' && linkedLiteratureDepartment
+                  ? `Showing ${linkedLiteratureDepartment.name} lab subjects for the selected semester.`
+                  : selectedDepartmentType === 'lab'
+                    ? 'No matching literature department was found for this lab department.'
+                    : 'Subjects and labs for the selected department and semester are shown automatically.'}
+            </div>
           </div>
           <span style={{ color: '#475569', fontSize: 13, fontWeight: 700 }}>{filteredSubjects.length} subjects · {theorySubjects.length} theory · {labSubjects.length} labs</span>
         </div>
@@ -316,8 +401,8 @@ export default function SubjectsPage() {
       ) : filteredSubjects.length === 0 ? (
         <div style={{ background: 'white', borderRadius: '14px', padding: '4rem', textAlign: 'center', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}></div>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.5rem' }}>No Subjects Found</h3>
-          <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>Add courses to build your academic syllabus and timetable generator mappings.</p>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.5rem' }}>{selectedDeptFilter ? 'No Subjects Found' : `Semester ${selectedSemester}`}</h3>
+          <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>{selectedDeptFilter ? 'Add courses to build your academic syllabus and timetable generator mappings.' : 'Choose a department type and department to view the subjects for this semester.'}</p>
           <button
             onClick={openCreate}
             style={{
@@ -335,10 +420,12 @@ export default function SubjectsPage() {
         </div>
       ) : (
         <div style={{ display: 'grid', gap: 18 }}>
-          {[
+          {(selectedDepartmentType === 'lab' ? [
+            { title: 'Laboratory subjects', items: labSubjects, color: '#b45309', background: '#fffbeb' },
+          ] : [
             { title: 'Theory subjects', items: theorySubjects, color: '#0f766e', background: '#ecfdf5' },
             { title: 'Laboratory subjects', items: labSubjects, color: '#b45309', background: '#fffbeb' },
-          ].map(group => (
+          ]).map(group => (
             <section key={group.title} className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div style={{ padding: '15px 18px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', background: group.background }}>
                 <strong style={{ color: group.color }}>{group.title}</strong><span style={{ color: group.color, fontSize: 13, fontWeight: 700 }}>{group.items.length}</span>
@@ -346,7 +433,7 @@ export default function SubjectsPage() {
               {group.items.length === 0 ? <div style={{ padding: 22, color: '#64748b' }}>No {group.title.toLowerCase()} in Semester {selectedSemester}.</div> : (
                 <div style={{ overflowX: 'auto' }}><table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
                   <thead><tr style={{ color: '#64748b', fontSize: 12, textAlign: 'left', background: '#f8fafc' }}>
-                    <th style={{ padding: '10px 18px' }}>CODE</th><th>SUBJECT</th><th>DEPARTMENT</th><th>YEAR</th><th>PERIODS / WEEK</th><th style={{ textAlign: 'right', paddingRight: 18 }}>ACTION</th>
+                    <th style={{ padding: '10px 18px' }}>CODE</th><th>SUBJECT</th><th>DEPARTMENT</th><th>YEAR</th><th style={{ textAlign: 'center' }}>PERIODS / WEEK</th><th style={{ textAlign: 'right', paddingRight: 18 }}>ACTION</th>
                   </tr></thead>
                   <tbody>{group.items.map((s: any) => {
                     const dept = departments.find(d => d.id === s.department_id);
@@ -354,7 +441,7 @@ export default function SubjectsPage() {
                       <td style={{ padding: '14px 18px' }}><span style={{ fontWeight: 800, color: group.color, background: group.background, padding: '4px 8px', borderRadius: 6 }}>{s.code}</span></td>
                       <td style={{ fontWeight: 700, color: '#0f172a' }}>{s.name}</td>
                       <td style={{ color: '#475569' }}>{dept?.code || '—'}</td><td style={{ color: '#475569' }}>Year {s.year || '—'}</td>
-                      <td style={{ color: '#475569' }}>{s.periods_per_week || 3}</td>
+                      <td style={{ color: '#475569', textAlign: 'center', fontWeight: 700 }}>{s.periods_per_week || 3}</td>
                       <td style={{ textAlign: 'right', paddingRight: 18 }}><div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}><button onClick={() => openEdit(s)} style={{ border: 0, background: 'transparent', color: '#2563eb', cursor: 'pointer', fontWeight: 700 }}>Edit</button><button onClick={() => handleDelete(s.id, s.name)} style={{ border: 0, background: 'transparent', color: '#dc2626', cursor: 'pointer', fontWeight: 700 }}>Delete</button></div></td>
                     </tr>;
                   })}</tbody>
@@ -367,8 +454,8 @@ export default function SubjectsPage() {
 
       {/* Modal: Add or edit subject */}
       {showModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'white', borderRadius: '14px', padding: '2rem', width: '100%', maxWidth: '520px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 1000, padding: '1rem', overflow: 'hidden' }}>
+          <div style={{ background: 'white', borderRadius: '14px', padding: 'clamp(1rem, 3vw, 2rem)', width: '100%', maxWidth: '520px', maxHeight: 'calc(100vh - 2rem)', overflowY: 'auto', overscrollBehavior: 'contain', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)' }}>
             <h2 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: '1.5rem', color: '#0f172a' }}>{editingSubjectId ? 'Edit Course Subject' : 'Add New Course Subject'}</h2>
             {editingSubjectId && <div style={{ margin: '-0.75rem 0 1rem', padding: '10px 12px', borderRadius: 8, background: '#eff6ff', color: '#1d4ed8', fontSize: 13 }}>
               Scheduling changes clear the affected odd/even cycle. Regenerate that cycle to apply the updated curriculum.
@@ -380,7 +467,7 @@ export default function SubjectsPage() {
                   type='text'
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder='e.g. Data Structures & Algorithms'
+                  placeholder='Enter subject name (e.g. Data Structures & Algorithms)'
                   style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem' }}
                   required
                 />
@@ -393,8 +480,8 @@ export default function SubjectsPage() {
                     type='text'
                     value={formData.code}
                     onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                    placeholder='e.g. CS301 / CS301L'
-                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem' }}
+                    placeholder='Enter subject code (e.g. CS301 / CS301L)'
+                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', color: formData.lab_block_size ? '#334155' : '#94a3b8' }}
                     required
                   />
                 </div>
@@ -402,13 +489,14 @@ export default function SubjectsPage() {
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Department</label>
                   <select
                     value={formData.department_id}
-                    onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, department_id: e.target.value, class_id: '', faculty_id: '' })}
                     disabled={Boolean(editingSubjectId)}
-                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem' }}
+                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', color: formData.department_id ? '#334155' : '#94a3b8' }}
                     required
                   >
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.id}>{d.name} ({d.code})</option>
+                    <option value="" disabled hidden>Department: Choose literature department</option>
+                    {literatureDepartments.map((d) => (
+                      <option key={d.id} value={d.id} style={{ color: '#334155' }}>{d.name} ({d.code})</option>
                     ))}
                   </select>
                 </div>
@@ -420,10 +508,12 @@ export default function SubjectsPage() {
                   <select
                     value={formData.lab_block_size}
                     onChange={(e) => setFormData({ ...formData, lab_block_size: parseInt(e.target.value) || 2 })}
-                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem' }}
+                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', textAlign: 'center' }}
+                    required
                   >
-                    <option value={2}>2 consecutive periods</option>
-                    <option value={3}>3 consecutive periods</option>
+                    <option value={0} disabled hidden>Choose consecutive block</option>
+                    <option value={2} style={{ color: '#334155' }}>2 consecutive periods</option>
+                    <option value={3} style={{ color: '#334155' }}>3 consecutive periods</option>
                   </select>
                   <div style={{ color: '#64748b', fontSize: 12, marginTop: 5 }}>Periods/week must be divisible by this block size.</div>
                 </div>
@@ -435,12 +525,14 @@ export default function SubjectsPage() {
                   <select
                     value={formData.year_level}
                     onChange={(e) => {
-                      const year = parseInt(e.target.value) || 1;
-                      setFormData({ ...formData, year_level: year, semester: year * 2 - 1, class_id: '' });
+                      const year = parseInt(e.target.value) || 0;
+                      setFormData({ ...formData, year_level: year, semester: 0, class_id: '' });
                     }}
-                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem' }}
+                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', color: formData.year_level ? '#334155' : '#94a3b8' }}
+                    required
                   >
-                    {[1, 2, 3, 4].map(year => <option key={year} value={year}>Year {year}</option>)}
+                    <option value={0} disabled hidden>Choose year level</option>
+                    {[1, 2, 3, 4].map(year => <option key={year} value={year} style={{ color: '#334155' }}>Year {year}</option>)}
                   </select>
                 </div>
                 <div>
@@ -448,9 +540,12 @@ export default function SubjectsPage() {
                   <select
                     value={formData.semester}
                     onChange={(e) => setFormData({ ...formData, semester: parseInt(e.target.value) || 1, class_id: '' })}
-                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem' }}
+                    disabled={!formData.year_level}
+                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', color: formData.semester ? '#334155' : '#94a3b8' }}
+                    required
                   >
-                    {[formData.year_level * 2 - 1, formData.year_level * 2].map(semester => <option key={semester} value={semester}>Semester {semester}</option>)}
+                    <option value={0} disabled hidden>{formData.year_level ? 'Choose semester' : 'Choose year level first'}</option>
+                    {formData.year_level > 0 && [formData.year_level * 2 - 1, formData.year_level * 2].map(semester => <option key={semester} value={semester} style={{ color: '#334155' }}>Semester {semester}</option>)}
                   </select>
                 </div>
                 <div>
@@ -458,10 +553,14 @@ export default function SubjectsPage() {
                   <select
                     value={formData.class_id}
                     onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
-                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem' }}
+                    disabled={!formData.year_level || !formData.semester}
+                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', color: formData.class_id ? '#334155' : '#94a3b8' }}
+                    required
                   >
-                    <option value="">All matching classes</option>
-                    {matchingClasses.map(item => <option key={item.id} value={item.id}>Year {item.year}, Semester {item.semester}</option>)}
+                    <option value="" disabled hidden>{formData.year_level && formData.semester ? 'Choose class' : 'Choose year and semester first'}</option>
+                    {formData.year_level > 0 && formData.semester > 0 && <option value="all" style={{ color: '#334155' }}>
+                      {formData.year_level} Year {selectedSubjectDepartment?.code || selectedSubjectDepartment?.name || 'Department'}
+                    </option>}
                   </select>
                 </div>
               </div>
@@ -472,11 +571,13 @@ export default function SubjectsPage() {
                   <select
                     value={formData.subject_type}
                     onChange={(e) => setFormData({ ...formData, subject_type: e.target.value })}
-                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem' }}
+                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', color: formData.subject_type ? '#334155' : '#94a3b8' }}
+                    required
                   >
-                    <option value="theory">Theory</option>
-                    <option value="lab">Lab / Practical</option>
-                    <option value="project">Project</option>
+                    <option value="" disabled hidden>Choose course type</option>
+                    <option value="theory" style={{ color: '#334155' }}>Theory</option>
+                    <option value="lab" style={{ color: '#334155' }}>Lab / Practical</option>
+                    <option value="project" style={{ color: '#334155' }}>Project</option>
                   </select>
                 </div>
                 <div>
@@ -500,13 +601,24 @@ export default function SubjectsPage() {
                 <select
                   value={formData.faculty_id}
                   onChange={(e) => setFormData({ ...formData, faculty_id: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem' }}
+                  style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', color: formData.faculty_id ? '#334155' : '#94a3b8' }}
                   required
                 >
-                  <option value="">-- Select Qualified Faculty --</option>
-                  {modalAvailableFaculty.map((f) => (
-                    <option key={f.id} value={f.id}>{f.name} ({f.code}) [{f.department?.code || departments.find(d => d.id === f.department_id)?.code || 'Department'}]</option>
+                  <option value="" disabled hidden>Faculty: Choose faculty member</option>
+                  {facultyByDepartment.map(({ department, faculty }) => (
+                    <optgroup key={department.id} label={`${department.name} (${department.code})`} style={{ color: '#334155' }}>
+                      {faculty.map(member => (
+                        <option key={member.id} value={member.id} style={{ color: '#334155' }}>{member.name}</option>
+                      ))}
+                    </optgroup>
                   ))}
+                  {facultyWithoutDepartment.length > 0 && (
+                    <optgroup label="Other Faculty" style={{ color: '#334155' }}>
+                      {facultyWithoutDepartment.map(member => (
+                        <option key={member.id} value={member.id} style={{ color: '#334155' }}>{member.name}</option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
               </div>
 
@@ -540,7 +652,7 @@ export default function SubjectsPage() {
                 </div>
               )}
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <div style={{ position: 'sticky', bottom: 0, display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', margin: '0 -0.25rem -0.25rem', padding: '1rem 0.25rem 0.25rem', borderTop: '1px solid #e2e8f0', background: 'white' }}>
                 <button
                   type='button'
                   onClick={() => { setShowModal(false); resetForm(); }}

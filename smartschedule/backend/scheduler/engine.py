@@ -66,6 +66,7 @@ def generate_timetable(
     classes: list[ClassInput],
     blocked_faculty_slots: Optional[set[tuple[str, int, int]]] = None,
     available_days: Optional[list[int]] = None,
+    available_periods: Optional[list[int]] = None,
 ) -> ScheduleResult:
     """Run CP-SAT solver and return a ScheduleResult.
 
@@ -78,6 +79,7 @@ def generate_timetable(
     model = cp_model.CpModel()
     blocked_faculty_slots = blocked_faculty_slots or set()
     schedule_days = sorted(set(available_days)) if available_days else DAYS
+    schedule_periods = sorted(set(available_periods)) if available_periods else PERIODS
 
     # ── Decision variables ──────────────────────────────────────────────────
     # x[(class_id, subject_id, day, period)] = 1 if that class has that subject at (day, period)
@@ -86,7 +88,7 @@ def generate_timetable(
     for cls in classes:
         for subj in cls.subjects:
             for d in schedule_days:
-                for p in PERIODS:
+                for p in schedule_periods:
                     key = (cls.class_id, subj.subject_id, d, p)
                     x[key] = model.NewBoolVar(f"x_c{cls.class_id[:6]}_s{subj.subject_id[:6]}_d{d}_p{p}")
 
@@ -95,13 +97,13 @@ def generate_timetable(
         for subj in cls.subjects:
             model.Add(
                 sum(x[(cls.class_id, subj.subject_id, d, p)]
-                    for d in schedule_days for p in PERIODS) == subj.periods_per_week
+                    for d in schedule_days for p in schedule_periods) == subj.periods_per_week
             )
 
     # ── Hard constraint 2: No class has two subjects in same (day, period) ──
     for cls in classes:
         for d in schedule_days:
-            for p in PERIODS:
+            for p in schedule_periods:
                 model.Add(
                     sum(x[(cls.class_id, subj.subject_id, d, p)]
                         for subj in cls.subjects) <= 1
@@ -117,7 +119,7 @@ def generate_timetable(
 
     for fid, assignments in faculty_map.items():
         for d in schedule_days:
-            for p in PERIODS:
+            for p in schedule_periods:
                 model.Add(
                     sum(x[(cid, sid, d, p)] for cid, sid in assignments) <= 1
                 )
@@ -134,12 +136,12 @@ def generate_timetable(
 
                 # All lab periods must start at a valid block start
                 # Valid starts: period p where p+bs-1 <= 7
-                valid_starts = [p for p in PERIODS if p + bs - 1 <= PERIODS[-1]]
+                valid_starts = [p for p in schedule_periods if all(p + offset in schedule_periods for offset in range(bs))]
 
                 # For each day: either 0 or exactly one block of size bs
                 for d in schedule_days:
                     # Total periods on this day
-                    day_total = sum(x[(cid, sid, d, p)] for p in PERIODS)
+                    day_total = sum(x[(cid, sid, d, p)] for p in schedule_periods)
 
                     # If used at all, must be used in a full block
                     # Create block indicator variables
@@ -150,7 +152,7 @@ def generate_timetable(
                         # If block is active, all periods in it must be 1
                         for offset in range(bs):
                             pp = start + offset
-                            if pp in PERIODS:
+                            if pp in schedule_periods:
                                 model.Add(x[(cid, sid, d, pp)] == 1).OnlyEnforceIf(b)
                         # If block is not active, at least one period in it is 0
                         # (implied by day_total constraint)
@@ -174,9 +176,9 @@ def generate_timetable(
             day_load = sum(
                 x[(cls.class_id, subj.subject_id, d, p)]
                 for subj in cls.subjects
-                for p in PERIODS
+                for p in schedule_periods
             )
-            over = model.NewIntVar(0, len(PERIODS), f"over_{cls.class_id[:6]}_d{d}")
+            over = model.NewIntVar(0, len(schedule_periods), f"over_{cls.class_id[:6]}_d{d}")
             model.Add(over >= day_load - 4)
             model.Add(over >= 0)
             penalties.append(over)
@@ -203,7 +205,7 @@ def generate_timetable(
         for cls in classes:
             for subj in cls.subjects:
                 for d in schedule_days:
-                    for p in PERIODS:
+                    for p in schedule_periods:
                         if solver.Value(x[(cls.class_id, subj.subject_id, d, p)]):
                             entries.append(TimetableEntryData(
                                 class_id=cls.class_id,

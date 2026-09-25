@@ -3,13 +3,13 @@ SmartSchedule — Application Settings
 Reads configuration from environment variables / .env file.
 """
 from typing import Any
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     # ─── App ───
-    PROJECT_NAME: str = "SmartSchedule API"
+    PROJECT_NAME: str = "SEC SchedX API"
     ENVIRONMENT: str = "development"  # development | staging | production
 
     # ─── Database ───
@@ -48,6 +48,15 @@ class Settings(BaseSettings):
             return v
         return [v]
 
+    @model_validator(mode="after")
+    def reject_insecure_production_defaults(self):
+        if self.ENVIRONMENT.lower() == "production":
+            if self.JWT_SECRET == "sm4rtsch3dule-dev-secret-key-2026-do-not-use-in-prod":
+                raise ValueError("JWT_SECRET must be configured securely in production")
+            if not self.CORS_ORIGINS:
+                raise ValueError("CORS_ORIGINS must be configured in production")
+        return self
+
     model_config = SettingsConfigDict(
         env_file=(".env", "../.env"),
         env_file_encoding="utf-8",
@@ -57,4 +66,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-

@@ -27,7 +27,7 @@ class AIQueryRequest(BaseModel):
 class AIQueryResponse(BaseModel):
     answer: str
     data_sources: list[str]
-    disclaimer: str = "This answer is based on your college's configured data in SmartSchedule."
+    disclaimer: str = "This answer is based on your college's configured data in SEC SchedX."
 
 
 @router.post("/query", response_model=AIQueryResponse, summary="Ask the AI assistant a question")
@@ -102,7 +102,7 @@ async def ai_query(
 
     # ─── Build prompt for Gemini ───
     system_context = f"""
-You are the SmartSchedule AI assistant for a college timetable management system.
+You are the SEC SchedX AI assistant for a college timetable management system.
 
 User role: {role}
 College ID: {college_id or 'not configured'}

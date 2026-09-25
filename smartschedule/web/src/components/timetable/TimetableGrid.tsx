@@ -51,7 +51,7 @@ export default function TimetableGrid({ entries, periods, workingDays, isEditabl
   };
 
   return (
-    <div style={{
+    <div role="grid" aria-label="Weekly timetable" aria-rowcount={periods.length + 1} aria-colcount={workingDays.length + 1} className="accessible-timetable master-themed-grid" style={{
       display: 'grid',
       gridTemplateColumns: compact
         ? `56px repeat(${workingDays.length}, minmax(0, 1fr))`
@@ -64,7 +64,7 @@ export default function TimetableGrid({ entries, periods, workingDays, isEditabl
       border: '1px solid var(--color-border)'
     }}>
       {/* Header Row */}
-      <div style={{ 
+      <div role="columnheader" style={{
         background: 'var(--color-surface)', 
         padding: 'var(--space-3)', 
         fontWeight: 600, 
@@ -78,7 +78,7 @@ export default function TimetableGrid({ entries, periods, workingDays, isEditabl
       }}>Time</div>
       
       {workingDays.map(day => (
-        <div key={`header-${day}`} style={{
+        <div role="columnheader" key={`header-${day}`} style={{
           background: 'var(--color-surface)',
           padding: compact ? '10px 4px' : 'var(--space-4) var(--space-3)',
           textAlign: 'center',
@@ -98,7 +98,7 @@ export default function TimetableGrid({ entries, periods, workingDays, isEditabl
       {periods.map(period => (
         <React.Fragment key={`row-${period.number}`}>
           {/* Time column */}
-          <div style={{
+          <div role="rowheader" style={{
             background: 'var(--color-surface)',
             padding: 'var(--space-3)',
             color: 'var(--color-text-secondary)',
@@ -119,10 +119,19 @@ export default function TimetableGrid({ entries, periods, workingDays, isEditabl
             const cellEntries = entries.filter(e => e.day_of_week === day && e.period_number === period.number);
             return (
               <div
+                role="gridcell"
+                aria-label={`${getDayName(day)}, ${period.label}${cellEntries.length ? `: ${cellEntries.map(item => item.subject_name || item.subject_code || 'Subject').join(', ')}` : ': Empty'}`}
+                tabIndex={isEditable && onCellSelect ? 0 : -1}
                 key={`cell-${day}-${period.number}`}
                 onDragOver={isEditable ? handleDragOver : undefined}
                 onDrop={isEditable ? (e) => handleDrop(e, day, period.number) : undefined}
                 onClick={isEditable && onCellSelect ? () => onCellSelect(day, period.number, cellEntries[0]) : undefined}
+                onKeyDown={isEditable && onCellSelect ? (event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onCellSelect(day, period.number, cellEntries[0]);
+                  }
+                } : undefined}
                 style={{
                   background: 'var(--color-surface)',
                   padding: compact ? '4px' : 'var(--space-2)',
@@ -139,17 +148,18 @@ export default function TimetableGrid({ entries, periods, workingDays, isEditabl
                 onMouseOut={(e) => { e.currentTarget.style.background = 'var(--color-surface)' }}
               >
                 {cellEntries.map((entry, idx) => {
-                  const subjectColorHue = ((entry.subject_name?.length || 0) * 45) % 360;
+                  const isLab = entry.subject_type === 'lab';
                   return (
                     <div
                       key={entry.id || idx}
                       draggable={isEditable}
+                      role="group"
+                      aria-label={`${entry.subject_name || entry.subject_code || 'Subject'}, taught by ${entry.teacher_name || 'unassigned teacher'}, ${entry.room_name || 'room not assigned'}`}
                       onDragStart={(e) => handleDragStart(e, entry.id)}
                       onDragEnd={handleDragEnd}
                       onClick={(event) => { event.stopPropagation(); if (isEditable && onCellSelect) onCellSelect(day, period.number, entry); }}
+                      className={`timetable-slot-card ${isLab ? 'lab' : ''}`}
                       style={{
-                        background: `linear-gradient(135deg, hsl(${subjectColorHue}, 80%, 65%), hsl(${subjectColorHue}, 80%, 55%))`,
-                        color: 'white',
                         padding: compact ? '7px 5px' : 'var(--space-3)',
                         borderRadius: 'var(--radius-md)',
                         fontSize: 'var(--font-size-xs)',
@@ -169,22 +179,26 @@ export default function TimetableGrid({ entries, periods, workingDays, isEditabl
                       
                       <div style={{ position: 'relative', zIndex: 2 }}>
                         {isEditable && onEntryDelete && (
-                          <button type="button" aria-label={`Remove ${entry.subject_name || 'subject'} from this period`} title="Remove this subject"
+                          <button className="timetable-remove" type="button" aria-label={`Remove ${entry.subject_name || 'subject'} from this period`} title="Remove this subject"
                             onMouseDown={(event) => event.stopPropagation()}
                             onClick={(event) => { event.stopPropagation(); onEntryDelete(entry); }}
-                            style={{ position: 'absolute', top: '-8px', right: '-8px', width: 24, height: 24, borderRadius: '50%', border: '1px solid rgba(255,255,255,.8)', background: '#b91c1c', color: 'white', fontWeight: 800, cursor: 'pointer', lineHeight: 1, zIndex: 3 }}>×</button>
+                            style={{ position: 'absolute', top: '-8px', right: '-8px', width: 24, height: 24, border: 0, background: 'transparent', color: 'currentColor', fontWeight: 800, cursor: 'pointer', lineHeight: 1, zIndex: 3 }}>&times;</button>
                         )}
-                        <div style={{ fontWeight: 700, fontSize: compact ? '0.7rem' : 'var(--font-size-sm)', marginBottom: 'var(--space-1)', textShadow: '0 1px 2px rgba(0,0,0,0.2)', overflowWrap: 'anywhere' }}>
+                        <div style={{ fontWeight: 700, fontSize: compact ? '0.7rem' : 'var(--font-size-sm)', marginBottom: 'var(--space-1)', paddingRight: isEditable ? 10 : 0, textShadow: '0 1px 2px rgba(0,0,0,0.2)', overflowWrap: 'anywhere' }}>
+                          <span className={`timetable-type ${isLab ? 'lab' : 'theory'}`}>
+                            {isLab ? 'LAB' : 'SUBJECT'}
+                          </span>
                           {entry.subject_name || entry.subject_code || 'Subject'}
                         </div>
                         <div style={{ display: 'flex', flexDirection: compact ? 'column' : 'row', gap: compact ? 3 : 0, justifyContent: 'space-between', opacity: 0.95, textShadow: '0 1px 1px rgba(0,0,0,0.2)', fontSize: compact ? '0.62rem' : '0.7rem', minWidth: 0 }}>
-                          <span style={{ background: 'rgba(0,0,0,0.2)', padding: '2px 6px', borderRadius: '4px' }}>{entry.teacher_name || 'Teacher'}</span>
-                          <span style={{ background: 'rgba(0,0,0,0.2)', padding: '2px 6px', borderRadius: '4px' }}>{entry.room_name || 'Room'}</span>
+                          <span className="timetable-slot-meta" style={{ padding: '2px 6px', borderRadius: '4px' }}>{entry.teacher_name || 'Teacher'}</span>
+                          <span className="timetable-slot-meta" style={{ padding: '2px 6px', borderRadius: '4px' }}>{entry.room_name || 'Room'}</span>
                         </div>
                       </div>
                     </div>
                   );
                 })}
+                {cellEntries.length === 0 && <span className="timetable-free" aria-hidden="true">Free</span>}
               </div>
             );
           })}

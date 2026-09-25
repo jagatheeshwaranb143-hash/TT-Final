@@ -15,8 +15,21 @@ export default function ClassesPage() {
     section: 'A',
   });
   const [submitting, setSubmitting] = useState(false);
+  const [departmentTypeFilter, setDepartmentTypeFilter] = useState<'department' | 'lab' | ''>('');
   const [departmentFilter, setDepartmentFilter] = useState('');
+  const [formDepartmentType, setFormDepartmentType] = useState<'department' | 'lab' | ''>('');
   const [semesterFilter, setSemesterFilter] = useState(1);
+
+  const departmentKey = (value: string = '') => value.toLowerCase().replace(/laboratory|lab/g, '').replace(/[^a-z0-9]/g, '');
+  const getLiteratureDepartmentForLab = (labDepartmentId: string) => {
+    const labDepartment = departments.find(item => item.id === labDepartmentId);
+    if (!labDepartment) return undefined;
+    const labKeys = new Set([departmentKey(labDepartment.code), departmentKey(labDepartment.name)].filter(Boolean));
+    return departments.find(item =>
+      (item.department_type || 'department') === 'department' &&
+      (labKeys.has(departmentKey(item.code)) || labKeys.has(departmentKey(item.name))),
+    );
+  };
 
   const loadData = async () => {
     try {
@@ -28,9 +41,6 @@ export default function ClassesPage() {
       setClassesList(Array.isArray(clsData) ? clsData : []);
       const depts = Array.isArray(deptData) ? deptData : [];
       setDepartments(depts);
-      if (depts.length > 0 && !formData.department_id) {
-        setFormData(prev => ({ ...prev, department_id: depts[0].id }));
-      }
     } catch (e: any) {
       console.error(e);
       toast.error('Failed to load classes or departments');
@@ -41,6 +51,7 @@ export default function ClassesPage() {
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -51,8 +62,19 @@ export default function ClassesPage() {
     }
     try {
       setSubmitting(true);
+      const targetDepartmentId = formLinkedLiteratureDepartment?.id || formData.department_id;
+      const duplicateClass = classesList.find(item =>
+        item.department_id === targetDepartmentId &&
+        item.year === formData.year_level &&
+        item.semester === formData.semester &&
+        String(item.section || 'A').toUpperCase() === formData.section.toUpperCase()
+      );
+      if (duplicateClass) {
+        toast.error(`Year ${formData.year_level}, Semester ${formData.semester}, Section ${formData.section.toUpperCase()} already exists for ${formLinkedLiteratureDepartment?.name || departments.find(item => item.id === targetDepartmentId)?.name || 'this department'}.`);
+        return;
+      }
       await api.classes.create({
-        department_id: formData.department_id,
+        department_id: targetDepartmentId,
         year: formData.year_level,
         semester: formData.semester,
         section: formData.section,
@@ -60,8 +82,9 @@ export default function ClassesPage() {
 
       toast.success('Class created successfully!');
       setShowModal(false);
+      setFormDepartmentType('');
       setFormData({
-        department_id: departments[0]?.id || '',
+        department_id: '',
         year_level: 1,
         semester: 1,
         section: 'A',
@@ -91,8 +114,24 @@ export default function ClassesPage() {
     3: '3rd Year (III)',
     4: '4th Year (IV)',
   };
+  const filteredDepartments = departments.filter(item => (item.department_type || 'department') === departmentTypeFilter);
+  const formDepartments = departments.filter(item => (item.department_type || 'department') === formDepartmentType);
+  const selectedFilterDepartment = departments.find(item => item.id === departmentFilter);
+  const selectedFormDepartment = departments.find(item => item.id === formData.department_id);
+  const formLinkedLiteratureDepartment = formDepartmentType === 'lab'
+    ? getLiteratureDepartmentForLab(formData.department_id)
+    : undefined;
+  const linkedLiteratureDepartment = departmentTypeFilter === 'lab'
+    ? getLiteratureDepartmentForLab(departmentFilter)
+    : undefined;
+  const classDepartmentId = linkedLiteratureDepartment?.id || departmentFilter;
+  const allDepartmentIds = departmentTypeFilter === 'lab'
+    ? filteredDepartments.map(item => getLiteratureDepartmentForLab(item.id)?.id).filter(Boolean)
+    : filteredDepartments.map(item => item.id);
   const filteredClasses = classesList.filter(item =>
-    (!departmentFilter || item.department_id === departmentFilter) && item.semester === semesterFilter
+    Boolean(departmentTypeFilter && departmentFilter) &&
+    (departmentFilter === 'all' ? allDepartmentIds.includes(item.department_id) : item.department_id === classDepartmentId) &&
+    item.semester === semesterFilter
   );
 
   return (
@@ -128,7 +167,8 @@ export default function ClassesPage() {
 
       <div className="card" style={{ marginBottom: 22, padding: 18 }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'end', flexWrap: 'wrap', marginBottom: 14 }}>
-          <div style={{ minWidth: 280, flex: 1 }}><label className="form-label">Department</label><select className="form-input" value={departmentFilter} onChange={event => setDepartmentFilter(event.target.value)} style={{ marginTop: 6 }}><option value="">All departments</option>{departments.map(item => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}</select></div>
+          <div style={{ minWidth: 220, flex: 1 }}><label className="form-label">Department type</label><select className="form-input" value={departmentTypeFilter} onChange={event => { setDepartmentTypeFilter(event.target.value as 'department' | 'lab' | ''); setDepartmentFilter(''); }} style={{ marginTop: 6, color: departmentTypeFilter ? '#334155' : '#94a3b8' }}><option value="" disabled hidden>Choose department type</option><option value="department">Literature Department</option><option value="lab">Lab Department</option></select></div>
+          <div style={{ minWidth: 280, flex: 1 }}><label className="form-label">Department</label><select className="form-input" value={departmentFilter} onChange={event => setDepartmentFilter(event.target.value)} disabled={!departmentTypeFilter} style={{ marginTop: 6, color: departmentFilter ? '#334155' : '#94a3b8' }}><option value="" disabled hidden>{departmentTypeFilter ? 'Choose department' : 'Choose department type first'}</option><option value="all">All Departments</option>{filteredDepartments.map(item => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}</select></div>
           <div style={{ color: '#64748b', fontSize: 13, paddingBottom: 10 }}>{filteredClasses.length} class{filteredClasses.length === 1 ? '' : 'es'} in Semester {semesterFilter}</div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(82px, 1fr))', gap: 8, overflowX: 'auto' }}>{[1,2,3,4,5,6,7,8].map(semester => <button key={semester} type="button" onClick={() => setSemesterFilter(semester)} style={{ padding: '10px 12px', borderRadius: 8, border: semesterFilter === semester ? '1px solid #0f766e' : '1px solid #dbe3ee', background: semesterFilter === semester ? '#0f766e' : '#fff', color: semesterFilter === semester ? '#fff' : '#475569', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>Sem {semester}</button>)}</div>
@@ -176,8 +216,8 @@ export default function ClassesPage() {
               >
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <span style={{ background: '#dbeafe', color: '#1e40af', fontWeight: 800, padding: '4px 10px', borderRadius: '6px', fontSize: '0.85rem' }}>
-                      Class
+                    <span style={{ background: departmentTypeFilter === 'lab' ? '#f3e8ff' : '#dbeafe', color: departmentTypeFilter === 'lab' ? '#7c3aed' : '#1e40af', fontWeight: 800, padding: '4px 10px', borderRadius: '6px', fontSize: '0.85rem' }}>
+                      {departmentTypeFilter === 'lab' ? 'Lab Class' : 'Class'}
                     </span>
                     <button
                       onClick={() => handleDelete(cls.id, `${cls.department_name || 'Class'} Year ${cls.year}`)}
@@ -187,9 +227,9 @@ export default function ClassesPage() {
                       Delete
                     </button>
                   </div>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.35rem' }}>{cls.department_name || 'Class'}  Semester {cls.semester}</h3>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.35rem' }}>{departmentTypeFilter === 'lab' && departmentFilter !== 'all' ? selectedFilterDepartment?.name : cls.department_name || 'Class'}  Semester {cls.semester}</h3>
                   <div style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '0.5rem' }}>
-                    <strong>Dept:</strong> {dept ? `${dept.name} (${dept.code})` : 'Department'}
+                    <strong>{departmentTypeFilter === 'lab' ? 'Linked Dept:' : 'Dept:'}</strong> {dept ? `${dept.name} (${dept.code})` : 'Department'}
                   </div>
                   <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', color: '#64748b' }}>
                     <span> {YEAR_LABELS[cls.year] || `Year ${cls.year}`}</span>
@@ -221,14 +261,31 @@ export default function ClassesPage() {
             <h2 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: '1.5rem', color: '#0f172a' }}>Add New Class</h2>
             <form onSubmit={handleCreate}>
               <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Department Type</label>
+                <select value={formDepartmentType} onChange={(e) => { setFormDepartmentType(e.target.value as 'department' | 'lab' | ''); setFormData({ ...formData, department_id: '' }); }} style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem' }} required>
+                  <option value="" disabled hidden>Choose department type</option><option value="department">Literature Department</option><option value="lab">Lab Department</option>
+                </select>
+              </div>
+
+              {formDepartmentType === 'lab' && formData.department_id && (
+                <div style={{ margin: '-0.25rem 0 1rem', padding: '11px 13px', borderRadius: 8, border: '1px solid #ddd6fe', background: '#faf5ff', color: '#6d28d9', fontSize: 13 }}>
+                  <strong>Lab Class:</strong> {selectedFormDepartment?.name || 'Selected lab'}
+                  {formLinkedLiteratureDepartment
+                    ? ` · linked to ${formLinkedLiteratureDepartment.name} (${formLinkedLiteratureDepartment.code})`
+                    : ' · no matching Literature department found'}
+                </div>
+              )}
+              <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Department</label>
                 <select
                   value={formData.department_id}
                   onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
+                  disabled={!formDepartmentType}
                   style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem' }}
                   required
                 >
-                  {departments.map((d) => (
+                  <option value="" disabled hidden>{formDepartmentType ? 'Choose department' : 'Choose department type first'}</option>
+                  {formDepartments.map((d) => (
                     <option key={d.id} value={d.id}>{d.name} ({d.code})</option>
                   ))}
                 </select>

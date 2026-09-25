@@ -11,13 +11,15 @@ for d in (str(backend_dir), str(backend_dir.parent)):
     if d not in sys.path:
         sys.path.insert(0, d)
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.api.v1.router import api_router
 from app.db.session import engine
 from sqlalchemy import text
+from app.core.exceptions import SmartScheduleException, ImportValidationError
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -50,6 +52,12 @@ async def lifespan(app: FastAPI):
                 await conn.execute(text("DROP TABLE timetable_entries_legacy"))
                 logger.info("Migrated timetable slots for independent odd/even workflows")
             await conn.run_sync(models.Base.metadata.create_all)
+            department_columns = (await conn.execute(text("PRAGMA table_info(departments)"))).mappings().all()
+            department_names = {column["name"] for column in department_columns}
+            if department_names and "department_type" not in department_names:
+                await conn.execute(text(
+                    "ALTER TABLE departments ADD COLUMN department_type VARCHAR(20) NOT NULL DEFAULT 'department'"
+                ))
             columns = (await conn.execute(text("PRAGMA table_info(users)"))).mappings().all()
             names = {column["name"] for column in columns}
             for name, definition in (
@@ -64,6 +72,10 @@ async def lifespan(app: FastAPI):
             for name in ("year", "semester"):
                 if subject_names and name not in subject_names:
                     await conn.execute(text(f"ALTER TABLE subjects ADD COLUMN {name} INTEGER"))
+            faculty_columns = (await conn.execute(text("PRAGMA table_info(faculty)"))).mappings().all()
+            faculty_names = {column["name"] for column in faculty_columns}
+            if faculty_names and "photo_url" not in faculty_names:
+                await conn.execute(text("ALTER TABLE faculty ADD COLUMN photo_url TEXT"))
             await conn.execute(text("""
                 UPDATE subjects
                 SET year = (
@@ -92,6 +104,17 @@ app = FastAPI(
     redoc_url="/api/redoc",
     lifespan=lifespan,
 )
+
+
+@app.exception_handler(SmartScheduleException)
+async def smart_schedule_exception_handler(
+    _request: Request, exc: SmartScheduleException
+) -> JSONResponse:
+    """Turn domain errors into stable, client-safe HTTP responses."""
+    body = {"detail": exc.message, "code": exc.code}
+    if isinstance(exc, ImportValidationError):
+        body["row_errors"] = exc.row_errors
+    return JSONResponse(status_code=exc.status_code, content=body)
 
 # CORS — allow Next.js dev server
 app.add_middleware(

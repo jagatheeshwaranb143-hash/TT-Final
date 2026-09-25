@@ -1,3 +1,2 @@
-'use client';
-import LabsPage from '../labs/page';
-export default LabsPage;
+import { redirect } from 'next/navigation';
+export default function LegacyLaboratoriesRedirect() { redirect('/labs'); }

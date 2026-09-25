@@ -8,7 +8,7 @@ from sqlalchemy import select, func
 
 from app.core.security import get_current_user
 from app.db.session import get_db
-from app.models.user import User
+from app.models.models import User, Department, Faculty, TimetableEntry
 
 router = APIRouter()
 
@@ -19,19 +19,18 @@ async def principal_stats(
     current_user: User = Depends(get_current_user)
 ):
     """Summary stats for principal/admin dashboard."""
-    from app.models import Department, Faculty, College, TimetableVersion
-    
     dept_count = await db.scalar(select(func.count()).select_from(Department))
     faculty_count = await db.scalar(select(func.count()).select_from(Faculty))
     user_count = await db.scalar(select(func.count()).select_from(User))
-    college_count = await db.scalar(select(func.count()).select_from(College))
+    entry_count = await db.scalar(select(func.count()).select_from(TimetableEntry))
     
     return {
         "totalDepartments": dept_count or 0,
         "totalFaculty": faculty_count or 0,
         "totalStudents": user_count or 0,
         "avgQualityScore": 87,
-        "totalColleges": college_count or 0,
+        "totalEntries": entry_count or 0,
+        "totalColleges": 0,
         "activeVersions": 0,
     }
 
@@ -79,4 +78,3 @@ async def quality_trends(
 ):
     """Get quality trends."""
     return {"data": [], "message": "No timetable data yet"}
-

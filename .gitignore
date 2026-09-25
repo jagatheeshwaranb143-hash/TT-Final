@@ -41,6 +41,8 @@ coverage.xml
 # ─── Node.js / Web ───
 node_modules/
 .next/
+.next-build/
+*.tsbuildinfo
 out/
 .cache/
 npm-debug.log*

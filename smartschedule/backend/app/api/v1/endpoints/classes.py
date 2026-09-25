@@ -9,7 +9,7 @@ from typing import Optional
 
 from app.db.session import get_db
 from app.models.models import Class, ClassSubject, Subject, Faculty, Department, TimetableEntry
-from app.core.security import get_current_user
+from app.core.security import get_current_user, require_hod_or_above
 
 router = APIRouter()
 
@@ -95,16 +95,28 @@ async def list_classes(
 
 
 @router.post("", response_model=ClassOut, status_code=status.HTTP_201_CREATED)
-async def create_class(body: ClassCreate, db: AsyncSession = Depends(get_db), _=Depends(get_current_user)):
+async def create_class(body: ClassCreate, db: AsyncSession = Depends(get_db), _=Depends(require_hod_or_above())):
     dept = await db.get(Department, body.department_id)
     if not dept:
         raise HTTPException(status_code=404, detail="Department not found")
+    normalized_section = body.section.upper()
+    existing = await db.execute(select(Class.id).where(
+        Class.department_id == body.department_id,
+        Class.year == body.year,
+        Class.semester == body.semester,
+        Class.section == normalized_section,
+    ))
+    if existing.scalar_one_or_none():
+        raise HTTPException(
+            status_code=409,
+            detail=f"Year {body.year}, Semester {body.semester}, Section {normalized_section} already exists for {dept.name}.",
+        )
     c = Class(
         id=str(uuid.uuid4()),
         department_id=body.department_id,
         year=body.year,
         semester=body.semester,
-        section=body.section.upper(),
+        section=normalized_section,
     )
     db.add(c)
     await db.commit()
@@ -146,11 +158,15 @@ async def get_class(class_id: str, db: AsyncSession = Depends(get_db), _=Depends
 
 
 @router.delete("/{class_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_class(class_id: str, db: AsyncSession = Depends(get_db), _=Depends(get_current_user)):
+async def delete_class(class_id: str, db: AsyncSession = Depends(get_db), _=Depends(require_hod_or_above())):
     c = await db.get(Class, class_id)
     if not c:
         raise HTTPException(status_code=404, detail="Class not found")
-    await db.delete(c)
+    # Timetable entries require a class_id. Delete generated periods and class
+    # subject assignments before removing the class to avoid NULL foreign keys.
+    await db.execute(delete(TimetableEntry).where(TimetableEntry.class_id == class_id))
+    await db.execute(delete(ClassSubject).where(ClassSubject.class_id == class_id))
+    await db.execute(delete(Class).where(Class.id == class_id))
     await db.commit()
 
 
@@ -159,7 +175,7 @@ async def assign_subjects_to_class(
     class_id: str,
     body: list[ClassSubjectAssign],
     db: AsyncSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_hod_or_above()),
 ):
     """Replace all subject-faculty assignments for a class."""
     c = await db.get(Class, class_id)

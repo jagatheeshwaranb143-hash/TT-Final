@@ -2,12 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
+import Link from 'next/link';
 
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ name: '', code: '' });
+  const [formData, setFormData] = useState<{ name: string; code: string; department_type: 'department' | 'lab' }>({ name: '', code: '', department_type: 'department' });
   const [submitting, setSubmitting] = useState(false);
 
   const loadData = async () => {
@@ -36,9 +37,9 @@ export default function DepartmentsPage() {
     try {
       setSubmitting(true);
       await api.departments.create(formData);
-      toast.success('Department created successfully!');
+      toast.success(formData.department_type === 'lab' ? 'Lab department created successfully!' : 'Department created successfully!');
       setShowModal(false);
-      setFormData({ name: '', code: '' });
+      setFormData({ name: '', code: '', department_type: 'department' });
       loadData();
     } catch (e: any) {
       toast.error(e.message || 'Failed to create department');
@@ -72,7 +73,7 @@ export default function DepartmentsPage() {
             borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px'
           }}
         >
-          <span>+</span> Add Department
+          <span>+</span> Add Department / Lab
         </button>
       </div>
 
@@ -109,13 +110,14 @@ export default function DepartmentsPage() {
                     Delete
                   </button>
                 </div>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: '#0f172a', marginBottom: '0.5rem' }}>{dept.name}</h3>
+                <span style={{ display: 'inline-block', marginBottom: '0.7rem', color: dept.department_type === 'lab' ? '#7c3aed' : '#0f766e', background: dept.department_type === 'lab' ? '#f3e8ff' : '#ccfbf1', padding: '3px 8px', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>{dept.department_type === 'lab' ? 'Lab Department' : 'Literature Department'}</span>
+                <Link href={`/timetable?department_type=${encodeURIComponent(dept.department_type || 'department')}&department_id=${encodeURIComponent(dept.id)}`} style={{ textDecoration: 'none' }} title={`Open ${dept.name} timetable`}><h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: '#0f172a', marginBottom: '0.5rem' }}>{dept.name}</h3></Link>
                 <p style={{ color: '#64748b', fontSize: '0.875rem' }}>ID: {dept.id.substring(0, 8)}...</p>
               </div>
 
               <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.8rem', color: '#10b981', background: '#ecfdf5', padding: '3px 8px', borderRadius: '4px', fontWeight: 600 }}>Active</span>
-                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Engineering</span>
+                <Link href={`/timetable?department_type=${encodeURIComponent(dept.department_type || 'department')}&department_id=${encodeURIComponent(dept.id)}`} style={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: 700, textDecoration: 'none' }}>View timetable →</Link>
               </div>
             </div>
           ))}
@@ -126,15 +128,22 @@ export default function DepartmentsPage() {
       {showModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div style={{ background: 'white', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '450px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem' }}>Add New Department</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem' }}>Add Department or Lab</h2>
             <form onSubmit={handleCreate}>
               <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Department Name</label>
+                <label htmlFor="department-type" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Choose type</label>
+                <select id="department-type" className="form-input" value={formData.department_type} onChange={(e) => setFormData({ ...formData, department_type: e.target.value as 'department' | 'lab' })}>
+                  <option value="department">Literature Department</option>
+                  <option value="lab">Lab Department</option>
+                </select>
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>{formData.department_type === 'lab' ? 'Lab Department Name' : 'Literature Department Name'}</label>
                 <input
                   type='text'
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder='e.g. Computer Science & Engineering'
+                  placeholder={formData.department_type === 'lab' ? 'e.g. Artificial Intelligence Lab' : 'e.g. Computer Science & Engineering'}
                   style={{ width: '100%', padding: '0.625rem', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.9rem' }}
                   required
                 />
@@ -145,7 +154,7 @@ export default function DepartmentsPage() {
                   type='text'
                   value={formData.code}
                   onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                  placeholder='e.g. CSE'
+                  placeholder={formData.department_type === 'lab' ? 'e.g. AI-LAB' : 'e.g. CSE'}
                   style={{ width: '100%', padding: '0.625rem', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.9rem' }}
                   required
                 />
@@ -163,7 +172,7 @@ export default function DepartmentsPage() {
                   disabled={submitting}
                   style={{ padding: '0.625rem 1.25rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
                 >
-                  {submitting ? 'Creating...' : 'Create Department'}
+                  {submitting ? 'Creating...' : formData.department_type === 'lab' ? 'Create Lab Department' : 'Create Department'}
                 </button>
               </div>
             </form>
