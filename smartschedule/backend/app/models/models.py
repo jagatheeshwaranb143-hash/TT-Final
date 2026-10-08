@@ -61,6 +61,8 @@ class Subject(Base):
     semester = Column(Integer, nullable=True)
     type = Column(SAEnum(SubjectType), nullable=False, default=SubjectType.theory)
     periods_per_week = Column(Integer, nullable=False, default=4)
+    credits = Column(Integer, nullable=False, default=3, server_default="3")
+    lab_mode = Column(String(20), nullable=False, default="main", server_default="main")
     # For lab subjects: how many consecutive periods per block (default 2)
     lab_block_size = Column(Integer, nullable=False, default=2)
 
@@ -108,6 +110,7 @@ class ClassSubject(Base):
     class_id = Column(String, ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
     subject_id = Column(String, ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
     faculty_id = Column(String, ForeignKey("faculty.id", ondelete="SET NULL"), nullable=True)
+    periods_per_week = Column(Integer, nullable=True)
 
     class_ = relationship("Class", back_populates="class_subjects")
     subject = relationship("Subject", back_populates="class_subjects")

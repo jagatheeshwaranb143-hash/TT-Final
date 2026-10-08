@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, Literal
 
 from app.db.session import get_db
@@ -25,6 +25,8 @@ class SubjectCreate(BaseModel):
     type: Literal["theory", "lab"] = "theory"
     periods_per_week: int = 4
     lab_block_size: int = 2
+    credits: int = Field(default=3, ge=0, le=30)
+    lab_mode: Literal["main", "integrated"] = "main"
 
 
 class SubjectUpdate(BaseModel):
@@ -35,6 +37,8 @@ class SubjectUpdate(BaseModel):
     type: Optional[Literal["theory", "lab"]] = None
     periods_per_week: Optional[int] = None
     lab_block_size: Optional[int] = None
+    credits: Optional[int] = Field(default=None, ge=0, le=30)
+    lab_mode: Optional[Literal["main", "integrated"]] = None
 
 
 class SubjectOut(BaseModel):
@@ -47,6 +51,8 @@ class SubjectOut(BaseModel):
     type: str
     periods_per_week: int
     lab_block_size: int
+    credits: int = 3
+    lab_mode: str = "main"
 
     model_config = {"from_attributes": True}
 
@@ -79,6 +85,8 @@ async def create_subject(body: SubjectCreate, db: AsyncSession = Depends(get_db)
         type=SubjectType(body.type),
         periods_per_week=body.periods_per_week,
         lab_block_size=body.lab_block_size if body.type == "lab" else 1,
+        credits=body.credits,
+        lab_mode=body.lab_mode if body.type == "lab" else "main",
     )
     db.add(s)
     await db.commit()
@@ -102,6 +110,7 @@ async def update_subject(subject_id: str, body: SubjectUpdate, db: AsyncSession 
     old_semester = s.semester
     schedule_changed = any(value is not None for value in (
         body.year, body.semester, body.type, body.periods_per_week, body.lab_block_size,
+        body.credits, body.lab_mode,
     ))
     if body.name is not None:
         s.name = body.name
@@ -117,6 +126,12 @@ async def update_subject(subject_id: str, body: SubjectUpdate, db: AsyncSession 
         s.periods_per_week = body.periods_per_week
     if body.lab_block_size is not None:
         s.lab_block_size = body.lab_block_size
+    if body.credits is not None:
+        s.credits = body.credits
+    if body.lab_mode is not None:
+        s.lab_mode = body.lab_mode
+    if s.type == SubjectType.lab and s.lab_mode == "integrated":
+        s.lab_block_size = 2
     if s.type == SubjectType.lab and s.periods_per_week % max(s.lab_block_size, 1) != 0:
         raise HTTPException(
             status_code=400,

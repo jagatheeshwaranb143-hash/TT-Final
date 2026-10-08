@@ -72,6 +72,13 @@ async def lifespan(app: FastAPI):
             for name in ("year", "semester"):
                 if subject_names and name not in subject_names:
                     await conn.execute(text(f"ALTER TABLE subjects ADD COLUMN {name} INTEGER"))
+            for name, definition in (("credits", "INTEGER NOT NULL DEFAULT 3"), ("lab_mode", "VARCHAR(20) NOT NULL DEFAULT 'main'")):
+                if subject_names and name not in subject_names:
+                    await conn.execute(text(f"ALTER TABLE subjects ADD COLUMN {name} {definition}"))
+            class_subject_columns = (await conn.execute(text("PRAGMA table_info(class_subjects)"))).mappings().all()
+            class_subject_names = {column["name"] for column in class_subject_columns}
+            if class_subject_names and "periods_per_week" not in class_subject_names:
+                await conn.execute(text("ALTER TABLE class_subjects ADD COLUMN periods_per_week INTEGER"))
             faculty_columns = (await conn.execute(text("PRAGMA table_info(faculty)"))).mappings().all()
             faculty_names = {column["name"] for column in faculty_columns}
             if faculty_names and "photo_url" not in faculty_names:

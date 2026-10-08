@@ -63,7 +63,7 @@ export default function LabTimetablePage() {
           <p style={{ color: '#64748b', marginTop: 7 }}>Only laboratory periods are shown. Different classes may run labs in the same period and are listed together.</p>
         </div>
         <div style={{ display: 'flex', gap: 9 }}>
-          {!!entries.length && <button type="button" className="btn btn-primary" onClick={exportPdf}><Download size={16} /> Export PDF</button>}
+          {!!entries.length && <button type="button" className="btn btn-primary" onClick={exportPdf}><Download size={16} /> Export timetable PDF</button>}
           <Link href="/timetable/generate" className="btn btn-secondary">Back to generation</Link>
         </div>
       </header>
@@ -83,7 +83,7 @@ export default function LabTimetablePage() {
                 return <td key={day} style={{ padding: 8, border: '1px solid #e2e8f0', minWidth: 190, verticalAlign: 'top', background: slotEntries.length ? '#faf5ff' : '#fff' }}>
                   {slotEntries.length === 0 ? <span style={{ minHeight: 64, display: 'grid', placeItems: 'center', color: '#94a3b8', fontSize: 11, fontWeight: 650 }}>Free</span> : <div style={{ display: 'grid', gap: 7 }}>
                     {slotEntries.map(entry => <article key={entry.id} style={{ padding: 9, borderRadius: 8, border: '1px solid #ddd6fe', background: '#fff' }}>
-                      <strong style={{ display: 'block', color: '#6d28d9', fontSize: 12 }}>{entry.subject_code} · Semester {semesterByClass.get(entry.class_id) || '—'}</strong>
+                      <strong style={{ display: 'block', color: '#6d28d9', fontSize: 12 }}>{entry.subject_code} · Semester {semesterByClass.get(entry.class_id) || '-'}</strong>
                       <span style={{ display: 'block', color: '#0f172a', fontSize: 13, fontWeight: 700, marginTop: 3 }}>{entry.subject_name}</span>
                       <small style={{ display: 'block', color: '#64748b', marginTop: 3 }}>{entry.class_label} · {entry.faculty_name || 'Faculty not assigned'}</small>
                     </article>)}

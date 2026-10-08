@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { api } from '@/lib/api';
 import TimetableGrid from '@/components/timetable/TimetableGrid';
 import { exportTimetablePdf } from '@/lib/timetable-pdf';
-import { getBasicPreferences, getDefaultSemesterCycle, getTimetablePreferences } from '@/lib/preferences';
+import { getBasicPreferences, getDefaultSemesterCycle, getTimetablePreferences, setTimetablePreferences } from '@/lib/preferences';
 
 const defaultPeriods = [
   { number: 1, label: 'P1', start_time: '09:00', end_time: '09:50' },
@@ -31,6 +31,19 @@ function preferredPeriods() {
   });
 }
 
+function initialTemplateSignatories() {
+  const saved = getTimetablePreferences().pdfStructure?.signatories;
+  return {
+    classCoordinator: saved?.classCoordinator || '',
+    facultyAdvisor: saved?.facultyAdvisor || '',
+    timetableIncharge: saved?.timetableIncharge || '',
+    overallTtCoordinator: saved?.overallTtCoordinator || '',
+    hod: saved?.hod || '',
+    vicePrincipal: saved?.vicePrincipal || 'Dr.P.SUJATHA',
+    principal: saved?.principal || 'Dr.M.ARULKUMARAN',
+  };
+}
+
 export default function TimetablePage() {
   const searchParams = useSearchParams();
   const [classes, setClasses] = useState<any[]>([]);
@@ -47,6 +60,53 @@ export default function TimetablePage() {
   const [workingDays, setWorkingDays] = useState(() => getTimetablePreferences().workingDays);
   const [limitWarning, setLimitWarning] = useState('');
   const [periods] = useState(() => typeof window === 'undefined' ? defaultPeriods : preferredPeriods());
+  const [showTemplateView, setShowTemplateView] = useState(false);
+  const [includeBreaksInPdf, setIncludeBreaksInPdf] = useState(false);
+  const [editSignatories, setEditSignatories] = useState(false);
+  const [facultyNames, setFacultyNames] = useState<string[]>([]);
+  const [facultyDetails, setFacultyDetails] = useState<any[]>([]);
+  const [signatories, setSignatories] = useState(initialTemplateSignatories);
+  const templatePreferences = getTimetablePreferences();
+  const configuredTemplateColumns = templatePreferences.pdfStructure?.columns?.length ? templatePreferences.pdfStructure.columns : periods.flatMap(period => [
+    { kind: 'period' as const, label: period.label },
+    ...(period.number === templatePreferences.intervalAfterPeriod && templatePreferences.intervalMinutes > 0 ? [{ kind: 'break' as const, label: 'BREAK' }] : []),
+    ...(period.number === templatePreferences.lunchAfterPeriod && templatePreferences.lunchMinutes > 0 ? [{ kind: 'lunch' as const, label: 'LUNCH' }] : []),
+  ]);
+  const templateColumns = configuredTemplateColumns.flatMap((column, index) => {
+    const periodNumber = Number(column.label.match(/\d+/)?.[0]);
+    if (column.kind !== 'period' || periodNumber !== 6) return [column];
+    const next = configuredTemplateColumns[index + 1];
+    const hasBreakAfterSix = next?.kind === 'break' && Number(next.label.match(/\d+/)?.[0] || periodNumber) === periodNumber;
+    return hasBreakAfterSix ? [column] : [column, { kind: 'break' as const, label: 'BREAK' }];
+  });
+  const periodTimes = useMemo(() => {
+    const [startHour, startMinute] = templatePreferences.dayStart.split(':').map(Number);
+    let cursor = startHour * 60 + startMinute;
+    const formatTime = (minutes: number) => `${String(Math.floor(minutes / 60) % 24).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+    return new Map(periods.map(period => {
+      const start = cursor;
+      const end = start + templatePreferences.periodMinutes;
+      cursor = end;
+      if (period.number === templatePreferences.intervalAfterPeriod) cursor += templatePreferences.intervalMinutes;
+      if (period.number === templatePreferences.lunchAfterPeriod) cursor += templatePreferences.lunchMinutes;
+      return [period.number, `${formatTime(start)}-${formatTime(end)}`] as const;
+    }));
+  }, [periods, templatePreferences.dayStart, templatePreferences.periodMinutes, templatePreferences.intervalAfterPeriod, templatePreferences.intervalMinutes, templatePreferences.lunchAfterPeriod, templatePreferences.lunchMinutes]);
+
+  useEffect(() => { api.faculty.list().then((data: any) => { const faculty = Array.isArray(data) ? data : []; setFacultyDetails(faculty); setFacultyNames([...new Set(faculty.map((item: any) => String(item.name || '').trim()).filter(Boolean))] as string[]); }); }, []);
+
+  const saveSignatories = async () => {
+    try {
+      const saved: any = await api.settings.get();
+      const timetable = getTimetablePreferences();
+      const pdfStructure = timetable.pdfStructure || { columns: templateColumns, workingDays: [], sourceName: 'Custom timetable template' };
+      const updatedTimetable = { ...saved.timetable, ...timetable, pdfStructure: { ...pdfStructure, signatories } };
+      await api.settings.save({ ...saved, timetable: updatedTimetable });
+      setTimetablePreferences({ ...timetable, pdfStructure: { ...pdfStructure, signatories } });
+      setEditSignatories(false);
+      toast.success('Template signatories saved');
+    } catch (error: any) { toast.error(error.message || 'Could not save template signatories'); }
+  };
 
   useEffect(() => {
     Promise.all([api.classes.list(), api.departments.list()])
@@ -82,8 +142,8 @@ export default function TimetablePage() {
     api.timetable.classTimetable(selectedClassId)
       .then((data: any) => setEntries((Array.isArray(data) ? data : []).map(entry => ({
         ...entry,
-        day_of_week: entry.day + 1,
-        period_number: entry.period,
+        day_of_week: entry.day_of_week ?? entry.day + 1,
+        period_number: entry.period_number ?? entry.period,
         teacher_name: entry.faculty_name,
         room_name: 'Room to be assigned',
       }))))
@@ -92,6 +152,7 @@ export default function TimetablePage() {
   }, [selectedClassId]);
 
   const selectedClass = useMemo(() => classes.find(item => item.id === selectedClassId), [classes, selectedClassId]);
+  const departmentFaculty = useMemo(() => facultyDetails.filter(member => member.department_id === selectedClass?.department_id), [facultyDetails, selectedClass?.department_id]);
   const filteredDepartments = useMemo(() => departments.filter(item =>
     (item.department_type || 'department') === departmentTypeFilter
   ), [departments, departmentTypeFilter]);
@@ -110,7 +171,7 @@ export default function TimetablePage() {
     (semesterGroup === 'odd' ? item.semester % 2 === 1 : item.semester % 2 === 0)
   ).sort((a, b) => a.year - b.year || a.semester - b.semester || String(a.section).localeCompare(String(b.section))), [classes, classDepartmentId, semesterGroup]);
   const departmentLabel = (item: any) => departments.find(department => department.id === item.department_id)?.code || item.department_name || 'Department';
-  const classOptionLabel = (item: any) => `Year ${item.year} – ${departmentLabel(item)}`;
+  const classOptionLabel = (item: any) => `Year ${item.year} - ${departmentLabel(item)} - Section ${item.section}`;
   const label = (item: any) => `${departmentLabel(item)} - Year ${item.year}, Semester ${item.semester}, Section ${item.section}`;
 
   const moveEntry = async (entryId: string, displayDay: number, period: number) => {
@@ -194,11 +255,13 @@ export default function TimetablePage() {
   const clearAllPeriods = async () => {
     if (moving || !selectedClassId || entries.length === 0) return;
     const className = selectedClass ? label(selectedClass) : 'this class';
-    const laterYears = selectedClass ? 4 - selectedClass.year : 0;
-    const dependencyMessage = laterYears > 0
-      ? `This will also clear all ${semesterGroup} semester timetables for the next ${laterYears} year${laterYears === 1 ? '' : 's'}, because they were generated using this timetable.`
-      : `This clears the selected final-year ${semesterGroup} semester timetable.`;
-    if (!window.confirm(`Clear scheduled periods from ${className} onward?\n\n${dependencyMessage}\n\nThis cannot be undone.`)) return;
+    const workflow = semesterGroup === 'odd' ? [7, 5, 3, 1] : [8, 6, 4, 2];
+    const dependentSemesters = selectedClass ? workflow.slice(workflow.indexOf(selectedClass.semester)) : [];
+    const dependentYears = dependentSemesters.map(semester => `Year ${Math.ceil(semester / 2)}`).join(', ');
+    const dependencyMessage = dependentSemesters.length > 1
+      ? `This also deletes dependent ${semesterGroup} semester timetables for ${dependentYears.slice(dependentYears.indexOf(', ') + 2)} in this department.`
+      : `Only the selected ${semesterGroup} semester timetable is deleted.`;
+    if (!window.confirm(`Delete scheduled periods for ${className} and dependent years?\n\n${dependencyMessage}\n\nOther departments using the same faculty are unaffected. This cannot be undone.`)) return;
     try {
       setMoving(true);
       const result: any = await api.timetable.clearClass(selectedClassId);
@@ -214,12 +277,40 @@ export default function TimetablePage() {
     }
   };
 
+  const exportSelectedClassPdf = () => {
+    if (!selectedClass) return;
+    try {
+      const preferences = getTimetablePreferences();
+      const basic = getBasicPreferences();
+      const breakLabels = includeBreaksInPdf
+        ? [...new Set(['Break after Period 6', ...(preferences.intervalMinutes > 0 && preferences.intervalAfterPeriod !== 6 ? [`Interval after Period ${preferences.intervalAfterPeriod}`] : []), ...(preferences.lunchMinutes > 0 ? [`Lunch after Period ${preferences.lunchAfterPeriod}`] : [])])]
+        : [];
+      const subtitle = `${preferences.includeInstitutionName ? `${basic.institutionName} - ` : ''}${label(selectedClass)}${breakLabels.length ? `\nBreaks: ${breakLabels.join('; ')}` : ''}`;
+      exportTimetablePdf({
+        title: preferences.pdfTitle,
+        subtitle,
+        entries,
+        periods,
+        includeBreaks: includeBreaksInPdf,
+        templateDetails: {
+          subjects: (selectedClass.subjects || []).map((subject: any) => ({ ...subject, faculty_department: facultyDetails.find((member: any) => member.id === subject.faculty_id)?.department?.name })),
+          departmentName: selectedClass.department_name || '',
+        },
+      });
+    } catch (error: any) { toast.error(error.message); }
+  };
+
   return (
     <div style={{ padding: '2rem', maxWidth: 1400, margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', gap: 18, flexWrap: 'wrap', marginBottom: 24 }}>
         <div><h1 style={{ fontSize: 30, letterSpacing: '-.03em' }}>Class timetable</h1><p style={{ color: '#64748b', marginTop: 6 }}>Select a class to view its weekly schedule.</p></div>
         <div style={{ display: 'flex', gap: 10 }}>
-          {selectedClass && entries.length > 0 && <button type="button" className="btn btn-secondary" onClick={() => { try { const preferences = getTimetablePreferences(); const basic = getBasicPreferences(); exportTimetablePdf({ title: preferences.pdfTitle, subtitle: `${preferences.includeInstitutionName ? `${basic.institutionName} — ` : ''}${label(selectedClass)}`, entries, periods }); } catch (error: any) { toast.error(error.message); } }}>Export PDF</button>}
+          {selectedClass && entries.length > 0 && <>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 7, color: '#475569', fontSize: 13, fontWeight: 700 }}><input type="checkbox" checked={includeBreaksInPdf} onChange={event => setIncludeBreaksInPdf(event.target.checked)} /> Breaks in PDF</label>
+            <button type="button" className="btn btn-secondary" onClick={exportSelectedClassPdf}>Export timetable PDF</button>
+          </>}
+          {selectedClass && entries.length > 0 && <button type="button" className="btn btn-secondary" aria-pressed={showTemplateView} onClick={() => setShowTemplateView(value => !value)}>{showTemplateView ? 'Standard timetable view' : 'Show timetable with template'}</button>}
+          {showTemplateView && <button type="button" className="btn btn-secondary" onClick={() => setEditSignatories(value => !value)}>{editSignatories ? 'Close signatory editor' : 'Edit template signatories'}</button>}
           {entries.length > 0 && <button type="button" className={editing ? 'btn btn-primary' : 'btn btn-secondary'} aria-expanded={editing} aria-controls="manual-edit-tools" onClick={() => { setEditing(value => !value); setSelectedSubjectId(''); setLimitWarning(''); }}>{editing ? 'Finish editing' : 'Manual edit'}</button>}
           <Link href={selectedClassId ? `/timetable/generate?department_type=${encodeURIComponent(departmentTypeFilter)}&department_id=${encodeURIComponent(departmentFilter)}&cycle=${semesterGroup}&class_id=${encodeURIComponent(selectedClassId)}` : '/timetable/generate'} className="btn btn-primary">Generate or regenerate</Link>
         </div>
@@ -253,7 +344,7 @@ export default function TimetablePage() {
                   </div>
                   <div className="manual-clear-actions">
                     <button type="button" className={`manual-clear-option${selectedSubjectId === '__clear__' ? ' active' : ''}`} aria-pressed={selectedSubjectId === '__clear__'} onClick={() => setSelectedSubjectId(selectedSubjectId === '__clear__' ? '' : '__clear__')}>
-                      <span aria-hidden="true">×</span> Remove a period
+                      <span aria-hidden="true">x</span> Remove a period
                     </button>
                     <button type="button" className="manual-clear-all" disabled={moving || entries.length === 0} onClick={clearAllPeriods}>
                       Clear all periods
@@ -292,9 +383,16 @@ export default function TimetablePage() {
                 </div>
                 <p className="manual-subject-help"><strong>{selectedSubjectId ? 'Ready:' : 'Tip:'}</strong> {selectedSubjectId === '__clear__' ? 'click an occupied period to remove it.' : selectedSubjectId ? 'click an empty period to add it, or an occupied period to replace it.' : 'choose an item above, or drag an existing card to another period.'}</p>
               </section>}
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 18, gap: 12, flexWrap: 'wrap' }}><div><strong>{selectedClass ? label(selectedClass) : 'Schedule'}</strong>{editing && <div style={{ color: '#0f766e', fontSize: 13, marginTop: 5, fontWeight: 600 }}>Drag a subject card to an empty period. Conflicts are checked before saving.</div>}</div><span className="badge badge-success">{moving ? 'Saving change…' : `${entries.length} scheduled periods`}</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 18, gap: 12, flexWrap: 'wrap' }}><div><strong>{selectedClass ? label(selectedClass) : 'Schedule'}</strong>{editing && <div style={{ color: '#0f766e', fontSize: 13, marginTop: 5, fontWeight: 600 }}>Drag a subject card to an empty period. Conflicts are checked before saving.</div>}</div><span className="badge badge-success">{moving ? 'Saving change...' : `${entries.length} scheduled periods`}</span></div>
               {editing && limitWarning && <div role="alert" style={{ padding: '12px 14px', marginBottom: 16, borderRadius: 8, border: '1px solid #fca5a5', background: '#fef2f2', color: '#991b1b', fontWeight: 600 }}>{limitWarning}</div>}
-              <div style={{ minWidth: 980 }}><TimetableGrid entries={entries} periods={periods} workingDays={workingDays} isEditable={editing && !moving} onEntryMove={moveEntry} onEntryDelete={deleteEntry} onCellSelect={assignSelectedSubject} /></div>
+              {showTemplateView ? <section className="class-template-view" aria-label="Timetable in uploaded template structure">
+                <div className="class-template-heading"><strong>{getBasicPreferences().institutionName}</strong><h2>{getTimetablePreferences().pdfTitle}</h2><span>{selectedClass ? label(selectedClass) : ''} - {semesterGroup === 'odd' ? 'Odd' : 'Even'} Semester</span></div>
+                <div className="pdf-structure-scroll"><table className="pdf-structure-table class-template-grid"><caption>Weekly timetable</caption><thead><tr><th>DAY / PERIOD</th>{templateColumns.map((column, index) => <th className={column.kind !== 'period' ? 'pdf-break-column' : ''} key={`${column.kind}-${index}`}>{column.label}</th>)}</tr><tr><th>TIME</th>{templateColumns.map((column, index) => { const periodNumber = Number(column.label.match(/\d+/)?.[0]) || templateColumns.filter(item => item.kind === 'period').indexOf(column) + 1; return <th className={column.kind !== 'period' ? 'pdf-break-column' : ''} key={`time-${index}`}>{column.kind === 'period' ? periodTimes.get(periodNumber) || '' : ''}</th>; })}</tr></thead><tbody>{workingDays.map(dayNumber => { const day = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][dayNumber - 1] || `Day ${dayNumber}`; return <tr key={dayNumber}><th>{day.slice(0, 3).toUpperCase()}</th>{templateColumns.map((column, index) => { if (column.kind !== 'period') return <td className="pdf-break-column" key={`${column.kind}-${index}`}>{column.label}</td>; const periodNumber = Number(column.label.match(/\d+/)?.[0]) || templateColumns.filter(item => item.kind === 'period').indexOf(column) + 1; const entry = entries.find(item => (item.day_of_week ?? item.day + 1) === dayNumber && (item.period_number ?? item.period) === periodNumber); return <td key={`${column.kind}-${index}`}>{entry ? <><strong>{entry.subject_name || 'Subject'}</strong><small>{entry.teacher_name || entry.faculty_name || 'Faculty not assigned'}</small></> : '-'}</td>; })}</tr>; })}</tbody></table></div>
+                <div className="pdf-structure-scroll class-template-section-scroll"><table className="pdf-structure-table class-template-subjects"><caption>Subject details</caption><thead><tr>{['S.NO', 'SUB-CODE', 'SUBJECT', 'CREDIT', 'FACULTY NAME', 'DESIGNATION & DEPT.', 'NO. HRS/WEEK'].map(item => <th key={item}>{item}</th>)}</tr></thead><tbody>{(['theory', 'lab'] as const).map(kind => { const subjects = (selectedClass?.subjects || []).filter((subject: any) => (subject.subject_type === 'lab' ? 'lab' : 'theory') === kind); return <Fragment key={kind}><tr className="subject-group-row"><th colSpan={7}>{kind === 'lab' ? 'PRACTICALS' : 'THEORY'}</th></tr>{subjects.map((subject: any, index: number) => <tr key={subject.subject_id}><td>{index + 1}</td><td>{subject.subject_code}</td><td>{subject.subject_name}</td><td>{subject.credits ?? '-'}</td><td>{subject.faculty_name || 'Not assigned'}</td><td>{selectedClass?.department_name || '-'}</td><td>{subject.periods_per_week}</td></tr>)}</Fragment>; })}</tbody></table></div>
+                <div className="pdf-structure-scroll class-template-section-scroll"><table className="pdf-structure-table class-template-people"><caption>Class coordination</caption><tbody><tr><th>{templatePreferences.pdfStructure?.coordinatorLabels?.[0] || 'CLASS COORDINATOR'}</th><td>{signatories.classCoordinator || '-'}</td><th>{templatePreferences.pdfStructure?.coordinatorLabels?.[1] || 'FACULTY ADVISOR'}</th><td>{signatories.facultyAdvisor || '-'}</td></tr></tbody></table></div>
+                <div className="pdf-structure-scroll class-template-section-scroll"><table className="pdf-structure-table class-template-approvals"><caption>Approval and sign-off</caption><thead><tr>{(['timetableIncharge', 'overallTtCoordinator', 'hod', 'vicePrincipal', 'principal'] as const).map((key, index) => <th key={key}>{templatePreferences.pdfStructure?.approvalLabels?.[index] || ['DEPT. TT COORDINATOR', 'OVERALL TT COORDINATOR', 'HOD', 'VICE-PRINCIPAL', 'PRINCIPAL'][index]}</th>)}</tr></thead><tbody><tr>{(['timetableIncharge', 'overallTtCoordinator', 'hod', 'vicePrincipal', 'principal'] as const).map(key => <td key={key}>{signatories[key] || (key === 'principal' ? getBasicPreferences().principalName : '') || '-'}</td>)}</tr></tbody></table></div>
+{editSignatories && <div className="template-signatory-editor"><p>Choose names for the four template tables. Faculty options are filtered to {selectedClass?.department_name || 'the selected department'}.</p>{([{ key: 'classCoordinator', label: 'Class Coordinator' }, { key: 'facultyAdvisor', label: 'Faculty Advisor' }, { key: 'timetableIncharge', label: `Department Timetable Coordinator - ${selectedClass?.department_name || 'Selected department'}` }, { key: 'overallTtCoordinator', label: 'Overall Timetable Coordinator' }, { key: 'hod', label: `HOD - ${selectedClass?.department_name || 'Selected department'}` }, { key: 'vicePrincipal', label: 'Vice Principal' }, { key: 'principal', label: 'Principal' }] as const).map(({ key, label }) => <label key={key}><span>{label}</span><select className="form-input" value={signatories[key] || ''} onChange={event => setSignatories(value => ({ ...value, [key]: event.target.value }))}><option value="">Select a name</option>{key === 'vicePrincipal' && <option value="Dr.P.SUJATHA">Dr.P.SUJATHA</option>}{key === 'principal' && <option value="Dr.M.ARULKUMARAN">Dr.M.ARULKUMARAN</option>}{departmentFaculty.map((member: any) => <option key={member.id} value={member.name}>{member.name}{member.department?.name ? ` · ${member.department.name}` : ''}</option>)}</select></label>)}<button type="button" className="btn btn-primary" onClick={saveSignatories}>Save template details</button></div>}
+              </section> : <div style={{ minWidth: 980 }}><TimetableGrid entries={entries} periods={periods} workingDays={workingDays} isEditable={editing && !moving} onEntryMove={moveEntry} onEntryDelete={deleteEntry} onCellSelect={assignSelectedSubject} /></div>}
             </div>
           )}
         </>

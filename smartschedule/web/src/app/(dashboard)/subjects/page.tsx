@@ -17,6 +17,8 @@ export default function SubjectsPage() {
     subject_type: '',
     weekly_periods: 3,
     lab_block_size: 0,
+    credits: 3,
+    lab_mode: 'main',
     department_id: '',
     year_level: 0,
     semester: 0,
@@ -29,6 +31,7 @@ export default function SubjectsPage() {
   const [selectedDepartmentType, setSelectedDepartmentType] = useState<'department' | 'lab' | ''>('');
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('');
   const [selectedSemester, setSelectedSemester] = useState(1);
+  const [selectedSectionClassId, setSelectedSectionClassId] = useState('');
 
   const departmentKey = (value: string = '') => value
     .toLowerCase()
@@ -62,6 +65,15 @@ export default function SubjectsPage() {
       setDepartments(depts);
       setFacultyList(Array.isArray(facData) ? facData : []);
       setClasses(Array.isArray(classData) ? classData : []);
+
+      // Show the saved semester sections as soon as data loads. Requiring both
+      // filters first made a successful Both-semester setup look like it was
+      // missing from Curriculum & Subjects.
+      const firstLiteratureDepartment = depts.find((department: any) => (department.department_type || 'department') === 'department');
+      if (firstLiteratureDepartment && !selectedDeptFilter) {
+        setSelectedDepartmentType('department');
+        setSelectedDeptFilter(firstLiteratureDepartment.id);
+      }
 
       if (depts.length > 0 && !formData.department_id) {
         setFormData(prev => ({ ...prev, department_id: depts[0].id }));
@@ -102,7 +114,7 @@ export default function SubjectsPage() {
     setEditingSubjectId(null);
     setFormData({
       name: '', code: '', subject_type: '', weekly_periods: 3,
-      lab_block_size: 0,
+      lab_block_size: 0, credits: 3, lab_mode: 'main',
       department_id: activeDepartmentId, year_level: 0, semester: 0,
       class_id: '', faculty_id: '',
     });
@@ -114,20 +126,22 @@ export default function SubjectsPage() {
       return;
     }
     resetForm();
+    setFormData(current => ({ ...current, department_id: subjectDepartmentId, year_level: Math.ceil(selectedSemester / 2), semester: selectedSemester, class_id: selectedSectionClass?.id || '' }));
     setShowModal(true);
   };
 
   const openEdit = (subject: any) => {
-    const assignment = classes
-      .flatMap(classItem => classItem.subjects || [])
-      .find((item: any) => item.subject_id === subject.id);
+    const assignedClass = classes.find(classItem => (classItem.subjects || []).some((item: any) => item.subject_id === subject.id));
+    const assignment = assignedClass?.subjects?.find((item: any) => item.subject_id === subject.id);
     setEditingSubjectId(subject.id);
     setFormData({
       name: subject.name || '',
       code: subject.code || '',
       subject_type: subject.type === 'lab' ? 'lab' : 'theory',
-      weekly_periods: subject.periods_per_week || 3,
+      weekly_periods: assignment?.periods_per_week || subject.periods_per_week || 3,
       lab_block_size: subject.lab_block_size || 2,
+      credits: subject.credits ?? 3,
+      lab_mode: subject.lab_mode || 'main',
       department_id: subject.department_id || '',
       year_level: subject.year || 1,
       semester: subject.semester || 1,
@@ -141,6 +155,11 @@ export default function SubjectsPage() {
     e.preventDefault();
     if (!formData.name || !formData.code || !formData.department_id || !formData.subject_type || !formData.year_level || !formData.semester || !formData.class_id) {
       toast.error('Please fill in all required fields');
+      return;
+    }
+    const targetClass = classes.find(item => item.id === formData.class_id);
+    if (formData.class_id !== 'all' && (!targetClass || targetClass.department_id !== formData.department_id || targetClass.year !== formData.year_level || targetClass.semester !== formData.semester)) {
+      toast.error(`No matching class section is selected for Year ${formData.year_level}, Semester ${formData.semester}. Refresh Class settings and try again.`);
       return;
     }
     try {
@@ -161,6 +180,8 @@ export default function SubjectsPage() {
         type: isLab ? 'lab' : 'theory',
         periods_per_week: formData.weekly_periods,
         lab_block_size: isLab ? formData.lab_block_size : 1,
+        credits: formData.credits,
+        lab_mode: isLab ? formData.lab_mode : 'main',
         department_id: formData.department_id,
         year: formData.year_level,
         semester: formData.semester,
@@ -200,6 +221,7 @@ export default function SubjectsPage() {
             .map((subject: any) => ({
               subject_id: subject.subject_id,
               faculty_id: subject.faculty_id || null,
+              periods_per_week: subject.periods_per_week ?? null,
             })));
         }
       }
@@ -207,20 +229,21 @@ export default function SubjectsPage() {
         const existingAssignments = (classItem.subjects || []).map((subject: any) => ({
           subject_id: subject.subject_id,
           faculty_id: subject.faculty_id || null,
+          periods_per_week: subject.periods_per_week ?? null,
         }));
         const hasSubject = existingAssignments.some((item: any) => item.subject_id === savedSubject.id);
         const updatedAssignments = hasSubject
           ? existingAssignments.map((item: any) => item.subject_id === savedSubject.id
-              ? { ...item, faculty_id: formData.faculty_id || null }
+              ? { ...item, faculty_id: formData.faculty_id || null, periods_per_week: formData.weekly_periods }
               : item)
-          : [...existingAssignments, { subject_id: savedSubject.id, faculty_id: formData.faculty_id || null }];
+          : [...existingAssignments, { subject_id: savedSubject.id, faculty_id: formData.faculty_id || null, periods_per_week: formData.weekly_periods }];
         await api.classes.assignSubjects(classItem.id, updatedAssignments);
       }
 
       toast.success(editingSubjectId ? 'Subject updated. Regenerate this semester cycle to apply it.' : 'Subject added successfully!');
       setShowModal(false);
       resetForm();
-      loadData();
+      await loadData();
     } catch (e: any) {
       toast.error(e.message || `Failed to ${editingSubjectId ? 'update' : 'add'} subject`);
     } finally {
@@ -254,6 +277,10 @@ export default function SubjectsPage() {
   );
   const theorySubjects = filteredSubjects.filter(s => s.type !== 'lab');
   const labSubjects = filteredSubjects.filter(s => s.type === 'lab');
+  const sectionClasses = classes
+    .filter(item => item.department_id === subjectDepartmentId && item.year === Math.ceil(selectedSemester / 2) && item.semester === selectedSemester)
+    .sort((left, right) => left.section.localeCompare(right.section));
+  const selectedSectionClass = sectionClasses.find(item => item.id === selectedSectionClassId) || sectionClasses[0];
 
   const selectedFaculty = facultyList.find(f => f.id === formData.faculty_id);
   const selectedFacultyDepartment = departments.find(d => d.id === selectedFaculty?.department_id);
@@ -301,6 +328,7 @@ export default function SubjectsPage() {
               onChange={(e) => {
                 setSelectedDepartmentType(e.target.value as 'department' | 'lab' | '');
                 setSelectedDeptFilter('');
+                setSelectedSectionClassId('');
               }}
               style={{ padding: '0.6rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.875rem', background: 'white', fontWeight: 600, color: selectedDepartmentType ? '#334155' : '#94a3b8' }}
             >
@@ -319,6 +347,7 @@ export default function SubjectsPage() {
               onChange={(e) => {
                 const departmentId = e.target.value;
                 setSelectedDeptFilter(departmentId);
+                setSelectedSectionClassId('');
                 if (!editingSubjectId) {
                   setFormData(prev => ({
                     ...prev,
@@ -374,19 +403,19 @@ export default function SubjectsPage() {
             <strong style={{ color: '#0f172a' }}>Choose semester</strong>
             <div style={{ color: '#64748b', fontSize: 13, marginTop: 3 }}>
               {!selectedDeptFilter
-                ? `Semester ${selectedSemester} selected. Choose a department type and department to view its subjects.`
+                ? `Semester ${selectedSemester} belongs to Year ${Math.ceil(selectedSemester / 2)}. Choose a department type and department to view its subjects.`
                 : selectedDepartmentType === 'lab' && linkedLiteratureDepartment
-                  ? `Showing ${linkedLiteratureDepartment.name} lab subjects for the selected semester.`
+                  ? `Semester ${selectedSemester} belongs to Year ${Math.ceil(selectedSemester / 2)}. Showing ${linkedLiteratureDepartment.name} lab subjects.`
                   : selectedDepartmentType === 'lab'
                     ? 'No matching literature department was found for this lab department.'
-                    : 'Subjects and labs for the selected department and semester are shown automatically.'}
+                    : `Semester ${selectedSemester} belongs to Year ${Math.ceil(selectedSemester / 2)}. Subjects and labs for the selected department are shown automatically.`}
             </div>
           </div>
           <span style={{ color: '#475569', fontSize: 13, fontWeight: 700 }}>{filteredSubjects.length} subjects · {theorySubjects.length} theory · {labSubjects.length} labs</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(84px, 1fr))', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
           {[1, 2, 3, 4, 5, 6, 7, 8].map(semester => (
-            <button key={semester} type="button" onClick={() => setSelectedSemester(semester)} style={{
+            <button key={semester} type="button" onClick={() => { setSelectedSemester(semester); setSelectedSectionClassId(''); }} style={{
               border: selectedSemester === semester ? '1px solid #0f766e' : '1px solid #dbe3ee',
               background: selectedSemester === semester ? '#0f766e' : '#fff',
               color: selectedSemester === semester ? '#fff' : '#475569',
@@ -394,6 +423,10 @@ export default function SubjectsPage() {
             }}>Sem {semester}</button>
           ))}
         </div>
+        {sectionClasses.length > 0 && <div style={{ marginTop: 16 }}><strong style={{ display: 'block', marginBottom: 8, color: '#334155', fontSize: 13 }}>Choose section for Year {Math.ceil(selectedSemester / 2)} · Semester {selectedSemester}</strong><div role="group" aria-label={`Sections for semester ${selectedSemester}`} style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>{sectionClasses.map(classItem => <button key={classItem.id} type="button" aria-pressed={selectedSectionClass?.id === classItem.id} onClick={() => setSelectedSectionClassId(classItem.id)} style={{ border: selectedSectionClass?.id === classItem.id ? '1px solid #0f766e' : '1px solid #dbe3ee', background: selectedSectionClass?.id === classItem.id ? '#0f766e' : '#fff', color: selectedSectionClass?.id === classItem.id ? '#fff' : '#475569', padding: '8px 15px', borderRadius: 8, cursor: 'pointer', fontWeight: 700 }}>Section {classItem.section}</button>)}</div><p style={{ color: '#64748b', fontSize: 12, margin: '7px 0 0' }}>New subjects will be added to Year {selectedSectionClass?.year} / Section {selectedSectionClass?.section}.</p></div>}
+        {sectionClasses.length === 0 && <div role="status" style={{ marginTop: 16, padding: 12, border: '1px solid #fed7aa', borderRadius: 9, background: '#fff7ed', color: '#9a3412', fontSize: 13 }}>
+          No class sections are saved for Year {Math.ceil(selectedSemester / 2)}, Semester {selectedSemester} ({selectedSemester % 2 === 0 ? 'Even' : 'Odd'}). Save this year and semester in Class settings before adding subjects.
+        </div>}
       </div>
 
       {loading ? (
@@ -433,14 +466,15 @@ export default function SubjectsPage() {
               {group.items.length === 0 ? <div style={{ padding: 22, color: '#64748b' }}>No {group.title.toLowerCase()} in Semester {selectedSemester}.</div> : (
                 <div style={{ overflowX: 'auto' }}><table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
                   <thead><tr style={{ color: '#64748b', fontSize: 12, textAlign: 'left', background: '#f8fafc' }}>
-                    <th style={{ padding: '10px 18px' }}>CODE</th><th>SUBJECT</th><th>DEPARTMENT</th><th>YEAR</th><th style={{ textAlign: 'center' }}>PERIODS / WEEK</th><th style={{ textAlign: 'right', paddingRight: 18 }}>ACTION</th>
+                    <th style={{ padding: '10px 18px' }}>CODE</th><th>SUBJECT</th><th style={{ textAlign: 'center' }}>CREDIT</th><th>DEPARTMENT</th><th>YEAR</th><th style={{ textAlign: 'center' }}>PERIODS / WEEK</th><th style={{ textAlign: 'right', paddingRight: 18 }}>ACTION</th>
                   </tr></thead>
                   <tbody>{group.items.map((s: any) => {
                     const dept = departments.find(d => d.id === s.department_id);
                     return <tr key={s.id} style={{ borderTop: '1px solid #eef2f7' }}>
                       <td style={{ padding: '14px 18px' }}><span style={{ fontWeight: 800, color: group.color, background: group.background, padding: '4px 8px', borderRadius: 6 }}>{s.code}</span></td>
-                      <td style={{ fontWeight: 700, color: '#0f172a' }}>{s.name}</td>
-                      <td style={{ color: '#475569' }}>{dept?.code || '—'}</td><td style={{ color: '#475569' }}>Year {s.year || '—'}</td>
+                      <td style={{ fontWeight: 700, color: '#0f172a' }}>{s.name}{s.type === 'lab' && s.lab_mode === 'integrated' && <small style={{ display: 'block', color: '#b45309', marginTop: 4 }}>Integrated lab</small>}</td>
+                      <td style={{ color: '#475569', textAlign: 'center', fontWeight: 700 }}>{s.credits ?? 3}</td>
+                      <td style={{ color: '#475569' }}>{dept?.code || '-'}</td><td style={{ color: '#475569' }}>Year {s.year || '-'}</td>
                       <td style={{ color: '#475569', textAlign: 'center', fontWeight: 700 }}>{s.periods_per_week || 3}</td>
                       <td style={{ textAlign: 'right', paddingRight: 18 }}><div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}><button onClick={() => openEdit(s)} style={{ border: 0, background: 'transparent', color: '#2563eb', cursor: 'pointer', fontWeight: 700 }}>Edit</button><button onClick={() => handleDelete(s.id, s.name)} style={{ border: 0, background: 'transparent', color: '#dc2626', cursor: 'pointer', fontWeight: 700 }}>Delete</button></div></td>
                     </tr>;
@@ -504,6 +538,8 @@ export default function SubjectsPage() {
 
               {formData.subject_type === 'lab' && (
                 <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Laboratory type</label>
+                  <select value={formData.lab_mode} onChange={(e) => setFormData({ ...formData, lab_mode: e.target.value, lab_block_size: e.target.value === 'integrated' ? 2 : formData.lab_block_size })} style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: 8, marginBottom: 12 }}><option value="main">Main lab</option><option value="integrated">Integrated lab (2 consecutive periods)</option></select>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Consecutive Lab Block</label>
                   <select
                     value={formData.lab_block_size}
@@ -513,59 +549,13 @@ export default function SubjectsPage() {
                   >
                     <option value={0} disabled hidden>Choose consecutive block</option>
                     <option value={2} style={{ color: '#334155' }}>2 consecutive periods</option>
-                    <option value={3} style={{ color: '#334155' }}>3 consecutive periods</option>
+                    {formData.lab_mode !== 'integrated' && <option value={3} style={{ color: '#334155' }}>3 consecutive periods</option>}
                   </select>
                   <div style={{ color: '#64748b', fontSize: 12, marginTop: 5 }}>Periods/week must be divisible by this block size.</div>
                 </div>
               )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.5fr', gap: '1rem', marginBottom: '1rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Year Level</label>
-                  <select
-                    value={formData.year_level}
-                    onChange={(e) => {
-                      const year = parseInt(e.target.value) || 0;
-                      setFormData({ ...formData, year_level: year, semester: 0, class_id: '' });
-                    }}
-                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', color: formData.year_level ? '#334155' : '#94a3b8' }}
-                    required
-                  >
-                    <option value={0} disabled hidden>Choose year level</option>
-                    {[1, 2, 3, 4].map(year => <option key={year} value={year} style={{ color: '#334155' }}>Year {year}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Semester</label>
-                  <select
-                    value={formData.semester}
-                    onChange={(e) => setFormData({ ...formData, semester: parseInt(e.target.value) || 1, class_id: '' })}
-                    disabled={!formData.year_level}
-                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', color: formData.semester ? '#334155' : '#94a3b8' }}
-                    required
-                  >
-                    <option value={0} disabled hidden>{formData.year_level ? 'Choose semester' : 'Choose year level first'}</option>
-                    {formData.year_level > 0 && [formData.year_level * 2 - 1, formData.year_level * 2].map(semester => <option key={semester} value={semester} style={{ color: '#334155' }}>Semester {semester}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Class</label>
-                  <select
-                    value={formData.class_id}
-                    onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
-                    disabled={!formData.year_level || !formData.semester}
-                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', color: formData.class_id ? '#334155' : '#94a3b8' }}
-                    required
-                  >
-                    <option value="" disabled hidden>{formData.year_level && formData.semester ? 'Choose class' : 'Choose year and semester first'}</option>
-                    {formData.year_level > 0 && formData.semester > 0 && <option value="all" style={{ color: '#334155' }}>
-                      {formData.year_level} Year {selectedSubjectDepartment?.code || selectedSubjectDepartment?.name || 'Department'}
-                    </option>}
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Course Type</label>
                   <select
@@ -592,6 +582,7 @@ export default function SubjectsPage() {
                     required
                   />
                 </div>
+                <div><label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Credits</label><input type="number" min="0" max="30" value={formData.credits} onChange={e => setFormData({ ...formData, credits: parseInt(e.target.value) || 0 })} style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: 8 }} required /></div>
               </div>
 
               <div style={{ marginBottom: '1.5rem' }}>

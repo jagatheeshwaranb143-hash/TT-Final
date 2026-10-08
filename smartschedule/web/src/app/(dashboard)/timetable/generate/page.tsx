@@ -10,8 +10,9 @@ type SemesterCycle = 'odd' | 'even';
 type StageStatus = 'waiting' | 'generating' | 'completed' | 'failed';
 
 const CYCLES: Record<SemesterCycle, number[]> = {
-  odd: [1, 3, 5, 7],
-  even: [2, 4, 6, 8],
+  // Stage sequence by class year: Year 4, Year 3, Year 2, then Year 1.
+  odd: [7, 5, 3, 1],
+  even: [8, 6, 4, 2],
 };
 
 const WORKFLOW_OPTIONS: Array<{
@@ -29,17 +30,22 @@ const ordinal = (year: number) => {
   return '4th Year';
 };
 
+const yearForSemester = (semester: number) => Math.ceil(semester / 2);
+
 export default function GenerateTimetablePage() {
   const [classes, setClasses] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [departmentType, setDepartmentType] = useState<'department' | 'lab' | ''>('');
   const [departmentId, setDepartmentId] = useState('');
   const [cycle, setCycle] = useState<SemesterCycle>(getDefaultSemesterCycle);
+  const [generatedClassIds, setGeneratedClassIds] = useState<string[]>([]);
   const [statuses, setStatuses] = useState<Record<number, StageStatus>>({});
   const [results, setResults] = useState<Record<number, number>>({});
+  const [deletingSemester, setDeletingSemester] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const semesters = useMemo(() => CYCLES[cycle], [cycle]);
 
   const departmentKey = (value: string = '') => value.toLowerCase().replace(/laboratory|lab/g, '').replace(/[^a-z0-9]/g, '');
   const selectedDepartment = departments.find(item => item.id === departmentId);
@@ -92,12 +98,17 @@ export default function GenerateTimetablePage() {
           }
         }
         setResults(counts);
-        setStatuses(Object.fromEntries(Object.keys(counts).map(value => [Number(value), 'completed'])));
+        const scheduled = new Set((Array.isArray(entries) ? entries : []).map((entry: any) => entry.class_id));
+        setGeneratedClassIds(Array.from(scheduled));
+        const completeStages = semesters.filter(semester => {
+          const stage = classes.filter(item => item.department_id === activeDepartmentId && item.semester === semester);
+          return stage.length > 0 && stage.every(item => scheduled.has(item.id));
+        });
+        setStatuses(Object.fromEntries(completeStages.map(value => [value, 'completed'])));
       })
       .catch((error: Error) => toast.error(error.message));
-  }, [activeDepartmentId, cycle, classes, departmentType]);
+  }, [activeDepartmentId, cycle, classes, departmentType, semesters]);
 
-  const semesters = cycle ? CYCLES[cycle] : [];
   const filteredDepartments = useMemo(
     () => departments.filter(item => (item.department_type || 'department') === departmentType),
     [departments, departmentType],
@@ -108,38 +119,94 @@ export default function GenerateTimetablePage() {
   );
   const classesForSemester = (semester: number) =>
     departmentClasses.filter(item => item.semester === semester);
+  const orderedClasses = departmentClasses.filter(item => item.semester % 2 === (cycle === 'odd' ? 1 : 0)).sort((a, b) => b.year - a.year || a.section.localeCompare(b.section));
+  const nextClassToGenerate = orderedClasses.find(item => !generatedClassIds.includes(item.id));
 
-  const generateSemester = async (semester: number) => {
-    if (!activeDepartmentId || classesForSemester(semester).length === 0) return;
+  const generateSelectedClass = async (classToGenerate: any = nextClassToGenerate) => {
+    if (!activeDepartmentId || !classToGenerate) return;
+    const semester = classToGenerate.semester;
     setStatuses(previous => ({ ...previous, [semester]: 'generating' }));
     try {
-      const referenceSemesters = semesters.filter(value => value < semester && statuses[value] === 'completed');
+      const stageIndex = semesters.indexOf(semester);
+      const referenceSemesters = semesters.slice(0, stageIndex).filter(value => statuses[value] === 'completed');
+      const classIndex = orderedClasses.findIndex(item => item.id === classToGenerate.id);
+      const referenceClassIds = orderedClasses.slice(0, classIndex).map(item => item.id);
       const result: any = await api.timetable.generate({
         department_id: activeDepartmentId,
         semester,
+        section: classToGenerate.section,
         reference_semesters: referenceSemesters,
+        reference_class_ids: referenceClassIds,
       });
-      // Regenerating an earlier stage invalidates every later stage in this
-      // cycle. The backend removes those stale schedules, so mirror that state.
-      setStatuses(previous => Object.fromEntries(
-        Object.entries({ ...previous, [semester]: 'completed' })
-          .filter(([value]) => Number(value) <= semester),
-      ) as Record<number, StageStatus>);
-      const generatedEntries: any[] = departmentType === 'lab'
-        ? await api.timetable.master(activeDepartmentId) as any[]
-        : [];
-      const stageClassIds = new Set(classesForSemester(semester).map(item => item.id));
+      const generatedEntries: any[] = await api.timetable.master(activeDepartmentId) as any[];
+      const scheduledIds = new Set(generatedEntries.map(entry => entry.class_id));
+      setGeneratedClassIds(Array.from(scheduledIds));
+      setStatuses(previous => {
+        const updated = { ...previous };
+        for (const stage of semesters) {
+          const stageClasses = classesForSemester(stage);
+          if (stageClasses.length && stageClasses.every(item => scheduledIds.has(item.id))) updated[stage] = 'completed';
+          else delete updated[stage];
+        }
+        return updated;
+      });
+      const stageClassIds = new Set([classToGenerate.id]);
       const entriesCreated = departmentType === 'lab'
         ? generatedEntries.filter(entry => stageClassIds.has(entry.class_id) && entry.subject_type === 'lab').length
         : result.entries_created || 0;
       setResults(previous => Object.fromEntries(
         Object.entries({ ...previous, [semester]: entriesCreated })
-          .filter(([value]) => Number(value) <= semester),
+          .filter(([value]) => semesters.indexOf(Number(value)) <= stageIndex),
       ) as Record<number, number>);
-      toast.success(`Semester ${semester} fixed as the period and faculty reference for the next stage`);
+      toast.success(`${ordinal(classToGenerate.year)} Section ${classToGenerate.section} generated using earlier sections as references`);
     } catch (error: any) {
       setStatuses(previous => ({ ...previous, [semester]: 'failed' }));
-      toast.error(error.message || `Could not generate Semester ${semester}`);
+      toast.error(error.message || `Could not generate ${ordinal(classToGenerate.year)} Section ${classToGenerate.section}`);
+    }
+  };
+
+  const refreshGeneratedClasses = async () => {
+    const entries: any[] = await api.timetable.master(activeDepartmentId) as any[];
+    const scheduled = new Set(entries.map(entry => entry.class_id));
+    setGeneratedClassIds(Array.from(scheduled));
+    setStatuses(previous => {
+      const updated = { ...previous };
+      for (const semester of semesters) {
+        const stageClasses = classesForSemester(semester);
+        if (stageClasses.length && stageClasses.every(item => scheduled.has(item.id))) updated[semester] = 'completed';
+        else delete updated[semester];
+      }
+      return updated;
+    });
+  };
+
+  const deleteClassTimetable = async (classItem: any) => {
+    if (isGenerating) return;
+    if (!window.confirm(`Delete ${ordinal(classItem.year)} Section ${classItem.section} and later timetables that depend on it?`)) return;
+    setDeletingSemester(classItem.semester);
+    try {
+      const result: any = await api.timetable.clearClass(classItem.id);
+      await refreshGeneratedClasses();
+      toast.success(`Deleted ${result.entries_deleted || 0} periods for ${ordinal(classItem.year)} Section ${classItem.section} and dependent sections`);
+    } catch (error: any) {
+      toast.error(error.message || `Could not delete ${ordinal(classItem.year)} Section ${classItem.section}`);
+    } finally {
+      setDeletingSemester(null);
+    }
+  };
+
+  const regenerateClassTimetable = async (classItem: any) => {
+    if (isGenerating) return;
+    if (!window.confirm(`Regenerate ${ordinal(classItem.year)} Section ${classItem.section}? Later sections and years that depend on it will be cleared.`)) return;
+    setDeletingSemester(classItem.semester);
+    try {
+      await api.timetable.clearClass(classItem.id);
+      await refreshGeneratedClasses();
+      setDeletingSemester(null);
+      await generateSelectedClass(classItem);
+    } catch (error: any) {
+      toast.error(error.message || `Could not regenerate ${ordinal(classItem.year)} Section ${classItem.section}`);
+      setDeletingSemester(null);
     }
   };
 
@@ -156,7 +223,7 @@ export default function GenerateTimetablePage() {
         await api.timetable.generate({
           department_id: activeDepartmentId,
           semester,
-          reference_semesters: semesters.filter(value => value < semester),
+          reference_semesters: semesters.slice(0, semesters.indexOf(semester)),
         });
         setStatuses(previous => ({ ...previous, [semester]: 'completed' }));
       }
@@ -175,10 +242,10 @@ export default function GenerateTimetablePage() {
     }
   };
 
-  // Do not skip a missing default or intermediate stage. The selected cycle
-  // must be completed strictly from top to bottom.
-  const nextSemester = semesters.find(semester => statuses[semester] !== 'completed');
-  const isGenerating = Object.values(statuses).some(status => status === 'generating');
+  // Do not skip a missing or intermediate stage. Follow the configured
+  // Year 4 -> Year 3 -> Year 2 -> Year 1 sequence.
+  const nextSemester = nextClassToGenerate?.semester;
+  const isGenerating = deletingSemester !== null || Object.values(statuses).some(status => status === 'generating');
   const labPeriodCount = semesters.reduce((total, semester) => total + (results[semester] || 0), 0);
   const labTimetableReady = labPeriodCount > 0;
   const selectWorkflow = (selectedCycle: SemesterCycle) => {
@@ -192,9 +259,9 @@ export default function GenerateTimetablePage() {
     <div style={{ padding: '2rem', maxWidth: 1050, margin: '0 auto' }}>
       <div style={{ marginBottom: 24 }}>
         <p style={{ color: '#0f766e', fontWeight: 600, fontSize: 13, letterSpacing: '.01em', marginBottom: 6 }}>Class Timetable Workflow</p>
-        <h1 style={{ fontSize: 30, color: '#0f172a', letterSpacing: '-.03em' }}>Build timetables semester by semester</h1>
+        <h1 style={{ fontSize: 30, color: '#0f172a', letterSpacing: '-.03em' }}>Build timetables year by year</h1>
         <p style={{ color: '#64748b', marginTop: 8, maxWidth: 820, lineHeight: 1.6 }}>
-          Start with the first-year timetable. Its periods stay fixed, and its faculty allocations are reserved while each later semester in the same odd/even cycle is generated.
+          Generate Year 4 first, then Year 3, Year 2, and Year 1. Each stage reserves faculty periods from the completed prerequisite years in the same odd/even cycle.
         </p>
       </div>
 
@@ -239,6 +306,7 @@ export default function GenerateTimetablePage() {
                 </select>
               </div>
             </div>
+            <p style={{ margin: '14px 0 0', color: '#64748b', fontSize: 13 }}>Sections follow the saved Class settings. Generate them in order; each completed section is used as a reference for the next.</p>
           </div>
 
           {!departmentId ? (
@@ -267,7 +335,7 @@ export default function GenerateTimetablePage() {
           ) : <div style={{ display: 'grid', gap: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
               <h2 style={{ color: '#0f172a', fontSize: 20 }}>{cycle === 'odd' ? 'Odd' : 'Even'} semester timetable stages</h2>
-              <span style={{ color: '#64748b', fontSize: 13 }}>{semesters.map(value => `Semester ${value}`).join(' → ')}</span>
+              <span style={{ color: '#64748b', fontSize: 13 }}>{semesters.map(value => `Year ${yearForSemester(value)} (Semester ${value})`).join(' → ')}</span>
             </div>
             {semesters.map((semester, index) => {
               const stageClasses = classesForSemester(semester);
@@ -275,6 +343,9 @@ export default function GenerateTimetablePage() {
               const isNext = semester === nextSemester;
               const completed = status === 'completed';
               const unavailable = stageClasses.length === 0;
+              const visibleStageClasses = stageClasses
+                .filter(item => generatedClassIds.includes(item.id) || item.id === nextClassToGenerate?.id)
+                .sort((a, b) => a.section.localeCompare(b.section));
               return (
                 <div key={semester} className="card" style={{ padding: 22, border: completed ? '1px solid #86efac' : isNext ? '1px solid #5eead4' : '1px solid #e2e8f0', opacity: unavailable ? .72 : 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -283,22 +354,29 @@ export default function GenerateTimetablePage() {
                         {completed ? '✓' : index + 1}
                       </div>
                       <div>
-                        <h2 style={{ fontSize: 18, color: '#0f172a', marginBottom: 4 }}>{ordinal(index + 1)} · Semester {semester}</h2>
+                        <h2 style={{ fontSize: 18, color: '#0f172a', marginBottom: 4 }}>{ordinal(yearForSemester(semester))} · Semester {semester}</h2>
                         <p style={{ color: '#64748b', fontSize: 13 }}>
-                          {unavailable ? 'No class configured — add this semester before continuing' : `${stageClasses.length} class${stageClasses.length === 1 ? '' : 'es'} · ${stageClasses.reduce((total, item) => total + (item.subjects?.length || 0), 0)} subject allocations`}
+                          {unavailable ? 'No class sections configured for this year and semester' : `${stageClasses.length} configured section${stageClasses.length === 1 ? '' : 's'} · ${stageClasses.reduce((total, item) => total + (item.subjects?.length || 0), 0)} subject allocations`}
                         </p>
                         {completed && <p style={{ color: '#15803d', fontSize: 13, marginTop: 5 }}>{results[semester]} fixed periods; faculty allocations reserved for later stages</p>}
-                        {isNext && index > 0 && <p style={{ color: '#0f766e', fontSize: 13, marginTop: 5 }}>Uses: {semesters.filter(value => value < semester && statuses[value] === 'completed').map(value => `Semester ${value}`).join(', ')} as fixed reference</p>}
+                        {isNext && index > 0 && <p style={{ color: '#0f766e', fontSize: 13, marginTop: 5 }}>Uses: {semesters.slice(0, index).filter(value => statuses[value] === 'completed').map(value => `Year ${yearForSemester(value)} (Semester ${value})`).join(', ')} as fixed reference</p>}
                         {status === 'failed' && <p style={{ color: '#dc2626', fontSize: 13, marginTop: 5 }}>Generation failed. Correct the data and retry this stage.</p>}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 9 }}>
-                      {completed && stageClasses[0] && <button type="button" className="btn btn-secondary" onClick={() => router.push(`/timetable?class_id=${stageClasses[0].id}`)}>View</button>}
-                      <button type="button" className="btn btn-primary" onClick={() => generateSemester(semester)} disabled={unavailable || isGenerating || (!isNext && !completed)} title={!isNext && !completed ? 'Complete the earlier configured semester first' : undefined}>
-                        {status === 'generating' ? 'Generating...' : completed ? 'Regenerate stage' : isNext ? 'Generate & reserve' : 'Waiting for earlier stage'}
-                      </button>
-                    </div>
                   </div>
+                  {visibleStageClasses.map((classItem: any) => {
+                    const sectionCompleted = generatedClassIds.includes(classItem.id);
+                    const sectionIsNext = nextClassToGenerate?.id === classItem.id;
+                    return <div key={classItem.id} style={{ marginLeft: 34, padding: '12px 14px', border: '1px solid #e2e8f0', borderRadius: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, flexWrap: 'wrap', background: sectionCompleted ? '#f0fdf4' : sectionIsNext ? '#f0fdfa' : '#fff', marginTop: 8 }}>
+                      <div><strong style={{ color: '#0f172a' }}>{ordinal(classItem.year)} · Semester {classItem.semester} · Section {classItem.section}</strong><div style={{ color: sectionCompleted ? '#15803d' : '#64748b', fontSize: 12, marginTop: 3 }}>{sectionCompleted ? 'Timetable generated' : sectionIsNext ? 'Ready to generate next' : 'Waiting for earlier sections'}</div></div>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        {sectionCompleted && <button type="button" className="btn btn-secondary" onClick={() => router.push(`/timetable?class_id=${encodeURIComponent(classItem.id)}`)}>View</button>}
+                        {sectionCompleted && <button type="button" className="btn btn-secondary" onClick={() => deleteClassTimetable(classItem)} disabled={isGenerating} style={{ color: '#b91c1c', borderColor: '#fecaca' }}>{deletingSemester === classItem.semester ? 'Deleting…' : 'Delete'}</button>}
+                        {sectionCompleted && <button type="button" className="btn btn-secondary" onClick={() => regenerateClassTimetable(classItem)} disabled={isGenerating}>Regenerate</button>}
+                        {!sectionCompleted && <button type="button" className="btn btn-primary" onClick={() => generateSelectedClass(classItem)} disabled={!sectionIsNext || isGenerating || (index > 0 && !semesters.slice(0, index).every(value => statuses[value] === 'completed'))}>{isGenerating && status === 'generating' ? 'Generating…' : sectionIsNext ? `Generate Section ${classItem.section}` : 'Waiting'}</button>}
+                      </div>
+                    </div>;
+                  })}
                 </div>
               );
             })}

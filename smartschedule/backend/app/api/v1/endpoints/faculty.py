@@ -48,6 +48,10 @@ class SubjectBrief(BaseModel):
     code: str
     type: str
     periods_per_week: int
+    year: Optional[int] = None
+    semester: Optional[int] = None
+    credits: int = 3
+    lab_mode: str = "main"
 
     model_config = {"from_attributes": True}
 

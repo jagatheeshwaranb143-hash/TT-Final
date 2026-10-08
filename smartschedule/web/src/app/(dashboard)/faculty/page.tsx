@@ -19,7 +19,6 @@ export default function FacultyPage() {
   const [subjects, setSubjects] = useState<any[]>([]);
   const [entries, setEntries] = useState<any[]>([]);
   const [selected, setSelected] = useState('');
-  const [departmentTypeFilter, setDepartmentTypeFilter] = useState<'department' | 'lab' | ''>('');
   const [directoryDepartmentId, setDirectoryDepartmentId] = useState('');
   const [nameQuery, setNameQuery] = useState('');
   const [semesterCycle, setSemesterCycle] = useState<'odd' | 'even'>(getDefaultSemesterCycle);
@@ -28,7 +27,6 @@ export default function FacultyPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState('');
-  const [departmentType, setDepartmentType] = useState<'department' | 'lab' | ''>('');
   const [departmentId, setDepartmentId] = useState('');
   const photoInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,26 +57,10 @@ export default function FacultyPage() {
       .finally(() => setScheduleLoading(false));
   }, [selected, semesterCycle]);
 
-  const departmentKey = (value: string = '') => value.toLowerCase().replace(/laboratory|lab/g, '').replace(/[^a-z0-9]/g, '');
-  const selectedDirectoryDepartment = departments.find(item => item.id === directoryDepartmentId);
-  const linkedLiteratureDepartment = departmentTypeFilter === 'lab' && selectedDirectoryDepartment
-    ? departments.find(item => {
-        if ((item.department_type || 'department') !== 'department') return false;
-        const labKeys = new Set([departmentKey(selectedDirectoryDepartment.code), departmentKey(selectedDirectoryDepartment.name)].filter(Boolean));
-        return labKeys.has(departmentKey(item.code)) || labKeys.has(departmentKey(item.name));
-      })
-    : undefined;
-  const directoryFacultyDepartmentId = linkedLiteratureDepartment?.id || directoryDepartmentId;
-  const linkedLabSubjectIds = new Set(subjects.filter(subject =>
-    subject.department_id === directoryFacultyDepartmentId && subject.type === 'lab'
-  ).map(subject => subject.id));
-
   const normalizedQuery = nameQuery.trim().toLowerCase();
-  const hasCompleteDepartmentFilter = Boolean(departmentTypeFilter && directoryDepartmentId);
-  const visibleFaculty = (!hasCompleteDepartmentFilter && !normalizedQuery) ? [] : faculty.filter(item => {
-    const matchesDepartment = !hasCompleteDepartmentFilter || (departmentTypeFilter === 'lab'
-      ? (item.subjects || []).some((subject: any) => linkedLabSubjectIds.has(subject.id))
-      : item.department_id === directoryFacultyDepartmentId);
+  const hasCompleteDepartmentFilter = Boolean(directoryDepartmentId && directoryDepartmentId !== 'all');
+  const visibleFaculty = faculty.filter(item => {
+    const matchesDepartment = !hasCompleteDepartmentFilter || item.department_id === directoryDepartmentId;
     return (
       matchesDepartment &&
       (!normalizedQuery || item.name.toLowerCase().includes(normalizedQuery))
@@ -89,8 +71,8 @@ export default function FacultyPage() {
     typeof subject.semester !== 'number' || subject.semester % 2 === (semesterCycle === 'odd' ? 1 : 0)
   );
   const selectedDepartment = departments.find(item => item.id === selectedFaculty?.department_id);
-  const addFormDepartments = departments.filter(item => (item.department_type || 'department') === departmentType);
-  const directoryDepartments = departments.filter(item => (item.department_type || 'department') === departmentTypeFilter);
+  const addFormDepartments = departments;
+  const directoryDepartments = departments.filter(item => (item.department_type || 'department') !== 'lab');
   const gridEntries = entries.map(entry => ({ ...entry, day_of_week: entry.day + 1, period_number: entry.period, teacher_name: entry.faculty_name, room_name: entry.class_label }));
 
   const createFaculty = async (event: FormEvent) => {
@@ -98,7 +80,7 @@ export default function FacultyPage() {
     setSaving(true);
     try {
       const created: any = await api.faculty.create({ name: name.trim(), department_id: departmentId, can_teach_all_classes: false });
-      setName(''); setDepartmentType(''); setDepartmentId(''); setShowAdd(false);
+      setName(''); setDepartmentId(''); setShowAdd(false);
       toast.success('Faculty member added');
       await load();
       if (created?.id) setSelected(created.id);
@@ -158,7 +140,7 @@ export default function FacultyPage() {
   const exportPdf = () => {
     if (!selectedFaculty) return;
     try {
-      exportTimetablePdf({ title: `${semesterCycle === 'odd' ? 'Odd' : 'Even'} Faculty Timetable`, subtitle: selectedFaculty.name, entries: gridEntries, periods });
+      exportTimetablePdf({ title: `${semesterCycle === 'odd' ? 'Odd' : 'Even'} Faculty Timetable`, subtitle: `${selectedFaculty.name} - ${selectedDepartment?.name || 'Department'}`, entries: gridEntries, periods, facultyDetails: { name: selectedFaculty.name, departmentName: selectedDepartment?.name || selectedFaculty.department?.name || 'Department not assigned', semesterCycle: `${semesterCycle === 'odd' ? 'Odd' : 'Even'} semester`, subjects: cycleSubjects } });
     } catch (error: any) { toast.error(error.message); }
   };
 
@@ -174,16 +156,14 @@ export default function FacultyPage() {
           <div className="add-panel-heading"><div><strong>New faculty member</strong><span>Add basic details now; subjects can be assigned afterward.</span></div><button type="button" className="icon-button" onClick={() => setShowAdd(false)} aria-label="Close add faculty form"><X size={18} /></button></div>
           <div className="add-panel-fields">
             <div><label htmlFor="faculty-name">Full name</label><input id="faculty-name" className="form-input" value={name} onChange={event => setName(event.target.value)} placeholder="e.g. Dr. Priya Raman" autoFocus required /></div>
-            <div><label htmlFor="faculty-department-type">Department type</label><select id="faculty-department-type" className="form-input" value={departmentType} onChange={event => { setDepartmentType(event.target.value as 'department' | 'lab' | ''); setDepartmentId(''); }} style={{ color: departmentType ? '#334155' : '#94a3b8' }} required><option value="" disabled hidden>Choose department type</option><option value="department">Literature Department</option><option value="lab">Lab Department</option></select></div>
-            <div><label htmlFor="faculty-department">Department</label><select id="faculty-department" className="form-input" value={departmentId} onChange={event => setDepartmentId(event.target.value)} disabled={!departmentType} style={{ color: departmentId ? '#334155' : '#94a3b8' }} required><option value="" disabled hidden>{departmentType ? `Choose ${departmentType === 'lab' ? 'lab' : 'literature'} department` : 'Choose department type first'}</option>{addFormDepartments.map(item => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}</select></div>
+            <div><label htmlFor="faculty-department">Department</label><select id="faculty-department" className="form-input" value={departmentId} onChange={event => setDepartmentId(event.target.value)} style={{ color: departmentId ? '#334155' : '#94a3b8' }} required><option value="" disabled hidden>Choose department</option>{addFormDepartments.filter(item => (item.department_type || 'department') !== 'lab').map(item => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}</select></div>
             <button className="btn btn-primary" disabled={saving}>{saving ? 'Adding…' : 'Add member'}</button>
           </div>
         </form>
       )}
 
       <div className="faculty-toolbar">
-        <label className="faculty-directory-filter"><span>Department type</span><select value={departmentTypeFilter} onChange={event => { setDepartmentTypeFilter(event.target.value as 'department' | 'lab' | ''); setDirectoryDepartmentId(''); setNameQuery(''); setSelected(''); }} style={{ color: departmentTypeFilter ? '#334155' : '#94a3b8' }}><option value="" disabled hidden>Choose department type</option><option value="department">Literature Department</option><option value="lab">Lab Department</option></select></label>
-        <label className="faculty-directory-filter"><span>Department</span><select value={directoryDepartmentId} onChange={event => { setDirectoryDepartmentId(event.target.value); setNameQuery(''); setSelected(''); }} disabled={!departmentTypeFilter} style={{ color: directoryDepartmentId ? '#334155' : '#94a3b8' }}><option value="" disabled hidden>{departmentTypeFilter ? 'Choose department' : 'Choose department type first'}</option>{directoryDepartments.map(item => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}</select></label>
+        <label className="faculty-directory-filter"><span>Department</span><select value={directoryDepartmentId || 'all'} onChange={event => { setDirectoryDepartmentId(event.target.value === 'all' ? '' : event.target.value); setNameQuery(''); setSelected(''); }} style={{ color: '#334155' }}><option value="all">All Departments</option>{directoryDepartments.map(item => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}</select></label>
         <label className="faculty-search"><Search size={18} aria-hidden="true" /><span className="sr-only">Search faculty by name</span><input value={nameQuery} onChange={event => { setNameQuery(event.target.value); setSelected(''); }} placeholder="Search all faculty by name…" /></label>
         <div className="faculty-total"><Users size={17} /><strong>{visibleFaculty.length}</strong><span>members</span></div>
       </div>
@@ -200,7 +180,7 @@ export default function FacultyPage() {
               </button>
             );
           })}
-          {!loading && !visibleFaculty.length && <div className="faculty-list-empty"><UserRound size={28} /><strong>{nameQuery ? 'No matching faculty' : directoryDepartmentId ? 'No faculty found' : 'Search or choose a department'}</strong><span>{nameQuery ? 'Try a different faculty name.' : directoryDepartmentId ? 'No faculty members are assigned to this department.' : 'Search globally by faculty name, or select a department to browse its faculty.'}</span></div>}
+          {!loading && !visibleFaculty.length && <div className="faculty-list-empty"><UserRound size={28} /><strong>{nameQuery ? 'No matching faculty' : directoryDepartmentId ? 'No faculty found' : 'No faculty found'}</strong><span>{nameQuery ? 'Try a different faculty name.' : directoryDepartmentId ? 'No faculty members are assigned to this department.' : 'No faculty members have been added yet.'}</span></div>}
         </aside>
 
         <section className="faculty-detail" aria-live="polite">
@@ -218,7 +198,7 @@ export default function FacultyPage() {
                 <div className="profile-actions">
                   <div className="cycle-switch" aria-label="Semester cycle"><button className={semesterCycle === 'odd' ? 'active' : ''} onClick={() => setSemesterCycle('odd')} aria-pressed={semesterCycle === 'odd'}>Odd</button><button className={semesterCycle === 'even' ? 'active' : ''} onClick={() => setSemesterCycle('even')} aria-pressed={semesterCycle === 'even'}>Even</button></div>
                   {canManage && selectedFaculty.photo_url && <button className="btn btn-secondary" onClick={removeFacultyPhoto}><ImageOff size={16} /> Remove photo</button>}
-                  {!!entries.length && <button className="btn btn-secondary" onClick={exportPdf}><Download size={16} /> Export PDF</button>}
+                  {!!entries.length && <button className="btn btn-secondary" onClick={exportPdf}><Download size={16} /> Export timetable PDF</button>}
                   {canManage && <button className="icon-button danger" onClick={() => removeFaculty(selectedFaculty)} aria-label={`Remove ${selectedFaculty.name}`} title="Remove faculty"><Trash2 size={17} /></button>}
                 </div>
               </div>

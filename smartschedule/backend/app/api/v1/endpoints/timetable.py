@@ -23,11 +23,10 @@ class GenerateRequest(BaseModel):
     year: Optional[int] = None       # None = all years in dept
     semester: Optional[int] = None
     section: Optional[str] = None
-    # In the semester-by-semester workflow, only these earlier semesters are
-    # treated as fixed allocation references.  This keeps odd and even cycles
-    # independent and avoids a later semester constraining an earlier one when
-    # the earlier stage is regenerated.
+    # In the year-by-year workflow, completed prerequisite semesters are fixed
+    # allocation references. Odd and even cycles stay independent.
     reference_semesters: Optional[list[int]] = None
+    reference_class_ids: Optional[list[str]] = None
 
 
 class EntryOut(BaseModel):
@@ -38,6 +37,8 @@ class EntryOut(BaseModel):
     subject_name: str
     subject_code: str
     subject_type: str
+    credits: int = 3
+    lab_mode: str = "main"
     faculty_id: Optional[str]
     faculty_name: Optional[str]
     day: int
@@ -113,6 +114,8 @@ async def _get_entries(
             subject_name=e.subject.name if e.subject else "",
             subject_code=e.subject.code if e.subject else "",
             subject_type=e.subject.type.value if e.subject else "theory",
+            credits=e.subject.credits if e.subject else 3,
+            lab_mode=e.subject.lab_mode if e.subject else "main",
             faculty_id=e.faculty_id,
             faculty_name=e.faculty.name if e.faculty else None,
             day=e.day,
@@ -131,31 +134,31 @@ async def generate_timetable(
     current_user=Depends(require_hod_or_above()),
 ):
     """Run the CP-SAT solver for the given filter and store results."""
-    # Validate workflow references before doing database work. A stage may use
-    # only earlier stages from its own odd/even cycle.
+    # Validate workflow references before doing database work. The sequence is
+    # Year 4 -> Year 3 -> Year 2 -> Year 1 for both academic cycles.
+    workflow_semesters = [7, 5, 3, 1] if req.semester is None or req.semester % 2 else [8, 6, 4, 2]
+    if req.semester is not None and req.semester not in workflow_semesters:
+        raise HTTPException(status_code=400, detail="Semester must be between 1 and 8.")
     reference_semesters = req.reference_semesters
     if reference_semesters is None and req.semester is not None:
-        reference_semesters = [
-            semester for semester in range(1, req.semester)
-            if semester % 2 == req.semester % 2
-        ]
+        reference_semesters = workflow_semesters[:workflow_semesters.index(req.semester)]
     elif reference_semesters is not None and req.semester is not None:
         invalid_references = sorted({
             semester for semester in reference_semesters
             if semester < 1
             or semester > 8
-            or semester >= req.semester
             or semester % 2 != req.semester % 2
+            or semester not in workflow_semesters[:workflow_semesters.index(req.semester)]
         })
         if invalid_references:
             raise HTTPException(
                 status_code=400,
                 detail=(
-                    "Reference semesters must be earlier semesters in the same "
-                    f"odd/even cycle. Invalid values: {invalid_references}"
+                    "Reference semesters must be completed prerequisite stages in "
+                    f"the same odd/even workflow. Invalid values: {invalid_references}"
                 ),
             )
-        reference_semesters = sorted(set(reference_semesters))
+        reference_semesters = [semester for semester in workflow_semesters if semester in set(reference_semesters)]
 
     # Import here to avoid circular at startup
     import sys
@@ -188,14 +191,31 @@ async def generate_timetable(
     if not classes:
         raise HTTPException(status_code=404, detail="No classes found for the given filters")
 
-    # Enforce the selected academic cycle on the server as well as in the UI.
-    # Semester 3/5/7 must follow 1, and semester 4/6/8 must follow 2. A caller
-    # cannot skip a stage or use an opposite-cycle timetable as a reference.
+    reference_class_ids = set(req.reference_class_ids or [])
+    if reference_class_ids:
+        reference_classes_result = await db.execute(
+            select(Class).where(
+                Class.id.in_(reference_class_ids),
+                Class.department_id == req.department_id,
+            )
+        )
+        reference_classes = reference_classes_result.scalars().all()
+        if len(reference_classes) != len(reference_class_ids):
+            raise HTTPException(status_code=400, detail="Reference classes must belong to the selected department.")
+        target_order = min((-c.year, c.section.upper()) for c in classes)
+        if any((-c.year, c.section.upper()) >= target_order or c.semester % 2 != classes[0].semester % 2 for c in reference_classes):
+            raise HTTPException(status_code=400, detail="Reference classes must be earlier classes in the same semester cycle.")
+        scheduled_reference_ids = set((await db.execute(
+            select(TimetableEntry.class_id).where(TimetableEntry.class_id.in_(reference_class_ids)).distinct()
+        )).scalars().all())
+        if scheduled_reference_ids != reference_class_ids:
+            raise HTTPException(status_code=409, detail="Complete every earlier class section before using it as a timetable reference.")
+
+    # Enforce the configured year sequence on the server as well as in the UI.
+    # A caller cannot skip a stage or use an opposite-cycle timetable as a reference.
     if req.semester is not None:
-        required_references = [
-            semester for semester in range(1, req.semester)
-            if semester % 2 == req.semester % 2
-        ]
+        stage_index = workflow_semesters.index(req.semester)
+        required_references = workflow_semesters[:stage_index]
         if set(reference_semesters or []) != set(required_references):
             raise HTTPException(
                 status_code=409,
@@ -322,7 +342,7 @@ async def generate_timetable(
                     subject_id=cs.subject_id,
                     subject_name=cs.subject.name if cs.subject else "",
                     subject_type=cs.subject.type.value if cs.subject else "theory",
-                    periods_per_week=cs.subject.periods_per_week if cs.subject else 4,
+                    periods_per_week=cs.periods_per_week if cs.periods_per_week is not None else (cs.subject.periods_per_week if cs.subject else 4),
                     lab_block_size=cs.subject.lab_block_size if cs.subject else 2,
                     faculty_id=cs.faculty_id,
                     faculty_name=cs.faculty.name if cs.faculty else None,
@@ -333,8 +353,8 @@ async def generate_timetable(
         for c in classes
     ]
 
-    # Reserve faculty periods only from earlier stages in the selected cycle.
-    # Odd and even timetables are separate academic terms.
+    # Reserve faculty periods only from completed prerequisite stages. Odd and
+    # even timetables are separate academic terms.
     class_ids = [c.id for c in classes]
     blocking_semesters = set(reference_semesters or [])
 
@@ -348,8 +368,13 @@ async def generate_timetable(
     )
     if req.semester is not None:
         # Shared faculty must not be double-booked across departments. Odd and
-        # even semester cycles are separate academic terms.
-        occupied_query = occupied_query.where(Class.semester % 2 == req.semester % 2)
+        # even cycles are separate, and only completed prerequisite stages reserve slots.
+        occupied_query = occupied_query.where(Class.semester.in_(blocking_semesters))
+    if reference_class_ids:
+        occupied_query = occupied_query.union(
+            select(TimetableEntry.faculty_id, TimetableEntry.day, TimetableEntry.period)
+            .where(TimetableEntry.faculty_id.is_not(None), TimetableEntry.class_id.in_(reference_class_ids))
+        )
 
     occupied_result = await db.execute(occupied_query)
     occupied_rows = occupied_result.all()
@@ -460,14 +485,23 @@ async def generate_timetable(
             )
         generated_faculty_slots.add(slot)
 
-    # A regenerated stage may choose different faculty periods. Any later
-    # later stage in the same cycle calculated from old reservations is stale.
+    # A regenerated stage may choose different faculty periods. Every stage
+    # later in workflow order that used its old reservations is stale.
     if req.semester is not None:
+        downstream_semesters = workflow_semesters[workflow_semesters.index(req.semester) + 1:]
         later_class_ids = select(Class.id).where(
             Class.department_id == req.department_id,
-            Class.semester > req.semester,
-            Class.semester % 2 == req.semester % 2,
+            Class.semester.in_(downstream_semesters),
         )
+        if req.section is not None:
+            target_year = (req.semester + 1) // 2
+            same_year_later = select(Class.id).where(
+                Class.department_id == req.department_id,
+                Class.year == target_year,
+                Class.semester == req.semester,
+                Class.section > req.section.upper(),
+            )
+            later_class_ids = later_class_ids.union(same_year_later)
         await db.execute(
             delete(TimetableEntry).where(
                 TimetableEntry.class_id.in_(later_class_ids),
@@ -647,7 +681,7 @@ async def edit_entry(
                 TimetableEntry.id != entry_id,
             )
         )).scalar_one()
-        weekly_limit = subject.periods_per_week if subject else 0
+        weekly_limit = assignment.periods_per_week if assignment.periods_per_week is not None else (subject.periods_per_week if subject else 0)
         if scheduled_count >= weekly_limit:
             raise HTTPException(status_code=409, detail=f"{subject.name if subject else 'Subject'} already has its {weekly_limit} periods for this week")
     new_faculty_id = body.faculty_id if body.faculty_id is not None else (assignment.faculty_id if assignment else entry.faculty_id)
@@ -710,6 +744,8 @@ async def edit_entry(
         subject_name=updated.subject.name if updated.subject else "",
         subject_code=updated.subject.code if updated.subject else "",
         subject_type=updated.subject.type.value if updated.subject else "theory",
+        credits=updated.subject.credits if updated.subject else 3,
+        lab_mode=updated.subject.lab_mode if updated.subject else "main",
         faculty_id=updated.faculty_id,
         faculty_name=updated.faculty.name if updated.faculty else None,
         day=updated.day,
@@ -741,7 +777,7 @@ async def create_manual_entry(
             TimetableEntry.subject_id == body.subject_id,
         )
     )).scalar_one()
-    weekly_limit = assignment.subject.periods_per_week if assignment.subject else 0
+    weekly_limit = assignment.periods_per_week if assignment.periods_per_week is not None else (assignment.subject.periods_per_week if assignment.subject else 0)
     if scheduled_count >= weekly_limit:
         raise HTTPException(status_code=409, detail=f"{assignment.subject.name if assignment.subject else 'Subject'} already has its {weekly_limit} periods for this week")
     occupied = (await db.execute(select(TimetableEntry).where(
@@ -781,13 +817,15 @@ async def create_manual_entry(
     subject_name = assignment.subject.name if assignment.subject else ""
     subject_code = assignment.subject.code if assignment.subject else ""
     subject_type = assignment.subject.type.value if assignment.subject else "theory"
+    credits = assignment.subject.credits if assignment.subject else 3
+    lab_mode = assignment.subject.lab_mode if assignment.subject else "main"
     faculty_name = assignment.faculty.name if assignment.faculty else None
     await db.commit()
     return EntryOut(
         id=entry.id, class_id=entry.class_id,
         class_label=_class_label(class_) if class_ else entry.class_id,
         subject_id=entry.subject_id, subject_name=subject_name,
-        subject_code=subject_code, subject_type=subject_type,
+        subject_code=subject_code, subject_type=subject_type, credits=credits, lab_mode=lab_mode,
         faculty_id=entry.faculty_id,
         faculty_name=faculty_name,
         day=entry.day, period=entry.period, is_locked=False,
@@ -819,14 +857,14 @@ async def clear_class_timetable(
     class_ = await db.get(Class, class_id)
     if not class_:
         raise HTTPException(status_code=404, detail="Class not found")
-    dependent_classes = await db.execute(
-        select(Class.id).where(
-            Class.department_id == class_.department_id,
-            Class.semester % 2 == class_.semester % 2,
-            Class.semester >= class_.semester,
-        )
-    )
-    class_ids = list(dependent_classes.scalars().all())
+    workflow_semesters = [7, 5, 3, 1] if class_.semester % 2 else [8, 6, 4, 2]
+    dependent_semesters = workflow_semesters[workflow_semesters.index(class_.semester):]
+    same_cycle = await db.execute(select(Class).where(
+        Class.department_id == class_.department_id,
+        Class.semester % 2 == class_.semester % 2,
+    ))
+    target_order = (-class_.year, class_.section.upper())
+    class_ids = [item.id for item in same_cycle.scalars().all() if (-item.year, item.section.upper()) >= target_order]
     result = await db.execute(
         delete(TimetableEntry)
         .where(TimetableEntry.class_id.in_(class_ids))
@@ -839,6 +877,7 @@ async def clear_class_timetable(
         "classes_cleared": len(class_ids),
         "entries_deleted": deleted,
         "from_semester": class_.semester,
+        "dependent_semesters": dependent_semesters,
         "semester_cycle": "even" if class_.semester % 2 == 0 else "odd",
     }
 

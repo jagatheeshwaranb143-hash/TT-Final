@@ -12,6 +12,7 @@ Output : ScheduleResult with status + list of TimetableEntryData
 from __future__ import annotations
 
 import sys
+import secrets
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -65,6 +66,7 @@ class ScheduleResult:
 def generate_timetable(
     classes: list[ClassInput],
     blocked_faculty_slots: Optional[set[tuple[str, int, int]]] = None,
+    blocked_class_slots: Optional[set[tuple[str, int, int]]] = None,
     available_days: Optional[list[int]] = None,
     available_periods: Optional[list[int]] = None,
 ) -> ScheduleResult:
@@ -78,8 +80,46 @@ def generate_timetable(
 
     model = cp_model.CpModel()
     blocked_faculty_slots = blocked_faculty_slots or set()
+    blocked_class_slots = blocked_class_slots or set()
     schedule_days = sorted(set(available_days)) if available_days else DAYS
     schedule_periods = sorted(set(available_periods)) if available_periods else PERIODS
+
+    has_labs = any(subject.subject_type == 'lab' for cls in classes for subject in cls.subjects)
+    has_theory = any(subject.subject_type != 'lab' for cls in classes for subject in cls.subjects)
+    if has_labs and has_theory:
+        # Solve lab blocks first, then reserve those class and faculty periods
+        # while the same CP-SAT solver places theory sessions.
+        lab_classes = [ClassInput(cls.class_id, cls.class_label, [s for s in cls.subjects if s.subject_type == 'lab']) for cls in classes if any(s.subject_type == 'lab' for s in cls.subjects)]
+        theory_classes = [ClassInput(cls.class_id, cls.class_label, [s for s in cls.subjects if s.subject_type != 'lab']) for cls in classes if any(s.subject_type != 'lab' for s in cls.subjects)]
+        labs = generate_timetable(
+            lab_classes,
+            blocked_faculty_slots=blocked_faculty_slots,
+            blocked_class_slots=blocked_class_slots,
+            available_days=schedule_days,
+            available_periods=schedule_periods,
+        )
+        if labs.status not in {'FEASIBLE', 'OPTIMAL'}:
+            return labs
+        lab_faculty_slots = {
+            (entry.faculty_id, entry.day, entry.period)
+            for entry in labs.entries if entry.faculty_id
+        }
+        lab_class_slots = {(entry.class_id, entry.day, entry.period) for entry in labs.entries}
+        theory = generate_timetable(
+            theory_classes,
+            blocked_faculty_slots=blocked_faculty_slots | lab_faculty_slots,
+            blocked_class_slots=blocked_class_slots | lab_class_slots,
+            available_days=schedule_days,
+            available_periods=schedule_periods,
+        )
+        if theory.status not in {'FEASIBLE', 'OPTIMAL'}:
+            return theory
+        return ScheduleResult(
+            status='OPTIMAL' if labs.status == theory.status == 'OPTIMAL' else 'FEASIBLE',
+            entries=labs.entries + theory.entries,
+            message=f"Scheduled labs first, then theory: {len(labs.entries) + len(theory.entries)} periods",
+            elapsed_seconds=labs.elapsed_seconds + theory.elapsed_seconds,
+        )
 
     # ── Decision variables ──────────────────────────────────────────────────
     # x[(class_id, subject_id, day, period)] = 1 if that class has that subject at (day, period)
@@ -104,6 +144,9 @@ def generate_timetable(
     for cls in classes:
         for d in schedule_days:
             for p in schedule_periods:
+                if (cls.class_id, d, p) in blocked_class_slots:
+                    for subj in cls.subjects:
+                        model.Add(x[(cls.class_id, subj.subject_id, d, p)] == 0)
                 model.Add(
                     sum(x[(cls.class_id, subj.subject_id, d, p)]
                         for subj in cls.subjects) <= 1
@@ -183,11 +226,35 @@ def generate_timetable(
             model.Add(over >= 0)
             penalties.append(over)
 
+        for subj in cls.subjects:
+            for d in schedule_days:
+                subject_day_load = sum(x[(cls.class_id, subj.subject_id, d, p)] for p in schedule_periods)
+                repeats = model.NewIntVar(0, len(schedule_periods), f"repeat_{cls.class_id[:6]}_{subj.subject_id[:6]}_d{d}")
+                model.Add(repeats >= subject_day_load - 1)
+                penalties.append(repeats * 3)
+
+        first_period = min(schedule_periods)
+        for d in schedule_days:
+            first_period_vars = [x[(cls.class_id, subj.subject_id, d, first_period)] for subj in cls.subjects]
+            if first_period_vars:
+                first_period_filled = model.NewBoolVar(f"first_filled_{cls.class_id[:6]}_d{d}")
+                model.Add(sum(first_period_vars) >= 1).OnlyEnforceIf(first_period_filled)
+                model.Add(sum(first_period_vars) == 0).OnlyEnforceIf(first_period_filled.Not())
+                penalties.append((1 - first_period_filled) * 2)
+
+        for subj in cls.subjects:
+            first_period_count = sum(x[(cls.class_id, subj.subject_id, d, first_period)] for d in schedule_days)
+            repeated_first_period = model.NewIntVar(0, len(schedule_days), f"repeat_first_{cls.class_id[:6]}_{subj.subject_id[:6]}")
+            model.Add(repeated_first_period >= first_period_count - 1)
+            penalties.append(repeated_first_period * 3)
+
     model.Minimize(sum(penalties))
 
     # ── Solve ───────────────────────────────────────────────────────────────
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = SOLVER_TIME_LIMIT
+    solver.parameters.random_seed = secrets.randbelow(2**31 - 1) + 1
+    solver.parameters.randomize_search = True
     solver.parameters.log_search_progress = False
 
     status_code = solver.Solve(model)

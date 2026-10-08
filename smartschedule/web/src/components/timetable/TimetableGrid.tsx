@@ -50,6 +50,7 @@ export default function TimetableGrid({ entries, periods, workingDays, isEditabl
     setDraggedEntry(null);
   };
 
+
   return (
     <div role="grid" aria-label="Weekly timetable" aria-rowcount={periods.length + 1} aria-colcount={workingDays.length + 1} className="accessible-timetable master-themed-grid" style={{
       display: 'grid',
@@ -120,7 +121,7 @@ export default function TimetableGrid({ entries, periods, workingDays, isEditabl
             return (
               <div
                 role="gridcell"
-                aria-label={`${getDayName(day)}, ${period.label}${cellEntries.length ? `: ${cellEntries.map(item => item.subject_name || item.subject_code || 'Subject').join(', ')}` : ': Empty'}`}
+                aria-label={`${getDayName(day)}, ${period.label}${cellEntries.length ? `: ${cellEntries.map(item => item.subject_name || 'Subject').join(', ')}` : ': Empty'}`}
                 tabIndex={isEditable && onCellSelect ? 0 : -1}
                 key={`cell-${day}-${period.number}`}
                 onDragOver={isEditable ? handleDragOver : undefined}
@@ -154,7 +155,7 @@ export default function TimetableGrid({ entries, periods, workingDays, isEditabl
                       key={entry.id || idx}
                       draggable={isEditable}
                       role="group"
-                      aria-label={`${entry.subject_name || entry.subject_code || 'Subject'}, taught by ${entry.teacher_name || 'unassigned teacher'}, ${entry.room_name || 'room not assigned'}`}
+                      aria-label={`${entry.subject_name || 'Subject'}, taught by ${entry.teacher_name || entry.faculty_name || 'Faculty not assigned'}`}
                       onDragStart={(e) => handleDragStart(e, entry.id)}
                       onDragEnd={handleDragEnd}
                       onClick={(event) => { event.stopPropagation(); if (isEditable && onCellSelect) onCellSelect(day, period.number, entry); }}
@@ -185,14 +186,10 @@ export default function TimetableGrid({ entries, periods, workingDays, isEditabl
                             style={{ position: 'absolute', top: '-8px', right: '-8px', width: 24, height: 24, border: 0, background: 'transparent', color: 'currentColor', fontWeight: 800, cursor: 'pointer', lineHeight: 1, zIndex: 3 }}>&times;</button>
                         )}
                         <div style={{ fontWeight: 700, fontSize: compact ? '0.7rem' : 'var(--font-size-sm)', marginBottom: 'var(--space-1)', paddingRight: isEditable ? 10 : 0, textShadow: '0 1px 2px rgba(0,0,0,0.2)', overflowWrap: 'anywhere' }}>
-                          <span className={`timetable-type ${isLab ? 'lab' : 'theory'}`}>
-                            {isLab ? 'LAB' : 'SUBJECT'}
-                          </span>
-                          {entry.subject_name || entry.subject_code || 'Subject'}
+                          {entry.subject_name || 'Subject'}
                         </div>
-                        <div style={{ display: 'flex', flexDirection: compact ? 'column' : 'row', gap: compact ? 3 : 0, justifyContent: 'space-between', opacity: 0.95, textShadow: '0 1px 1px rgba(0,0,0,0.2)', fontSize: compact ? '0.62rem' : '0.7rem', minWidth: 0 }}>
-                          <span className="timetable-slot-meta" style={{ padding: '2px 6px', borderRadius: '4px' }}>{entry.teacher_name || 'Teacher'}</span>
-                          <span className="timetable-slot-meta" style={{ padding: '2px 6px', borderRadius: '4px' }}>{entry.room_name || 'Room'}</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? 3 : 0, opacity: 0.95, textShadow: '0 1px 1px rgba(0,0,0,0.2)', fontSize: compact ? '0.62rem' : '0.7rem', minWidth: 0 }}>
+                          <span className="timetable-slot-meta" style={{ padding: '2px 6px', borderRadius: '4px' }}>{entry.teacher_name || entry.faculty_name || 'Faculty not assigned'}</span>
                         </div>
                       </div>
                     </div>
@@ -202,6 +199,7 @@ export default function TimetableGrid({ entries, periods, workingDays, isEditabl
               </div>
             );
           })}
+
         </React.Fragment>
       ))}
     </div>

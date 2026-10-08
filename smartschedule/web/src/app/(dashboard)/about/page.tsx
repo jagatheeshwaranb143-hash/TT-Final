@@ -45,7 +45,7 @@ export default function AboutPage() {
         <ul>
           <li><strong>Use the correct order:</strong> department → faculty → classes → subjects → timetable.</li>
           <li><strong>Choose one semester type:</strong> generate the Odd or Even cycle semester by semester.</li>
-          <li><strong>Keep earlier stages fixed:</strong> later-year generation reserves faculty and periods already used by earlier years.</li>
+          <li><strong>Generate in dependency order:</strong> Year 4 is fixed first, then Year 3, Year 2, and Year 1; each stage reserves faculty periods from its completed prerequisite years.</li>
           <li><strong>Regenerate after data changes:</strong> update the affected timetable whenever faculty, subjects, or class details change.</li>
           <li><strong>Use Settings:</strong> maintain the default semester type, institution details, working periods, appearance, and PDF format.</li>
         </ul>

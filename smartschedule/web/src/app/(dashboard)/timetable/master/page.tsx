@@ -18,10 +18,16 @@ const weekdays = [
 function buildPeriods() {
   const preferences = getTimetablePreferences();
   const [hour, minute] = preferences.dayStart.split(':').map(Number);
-  const start = hour * 60 + minute;
+  let cursor = hour * 60 + minute;
   const format = (value: number) => `${String(Math.floor(value / 60) % 24).padStart(2, '0')}:${String(value % 60).padStart(2, '0')}`;
   return Array.from({ length: preferences.periodsPerDay }, (_, index) => {
-    const from = start + index * preferences.periodMinutes;
+    const from = cursor;
+    const to = from + preferences.periodMinutes;
+    cursor = to;
+    const periodNumber = index + 1;
+    if (periodNumber === preferences.intervalAfterPeriod && preferences.intervalMinutes > 0) cursor += preferences.intervalMinutes;
+    if (periodNumber === preferences.lunchAfterPeriod && preferences.lunchMinutes > 0) cursor += preferences.lunchMinutes;
+    if (periodNumber === 6 && preferences.intervalAfterPeriod !== 6 && preferences.lunchAfterPeriod !== 6) cursor += preferences.intervalMinutes;
     return { number: index + 1, label: `P${index + 1}`, time: `${format(from)}–${format(from + preferences.periodMinutes)}` };
   });
 }
@@ -87,7 +93,11 @@ export default function MasterTimetablePage() {
   const visibleEntries = useMemo(() => entries.filter(item => visibleClassIds.has(item.class_id) && item.day === selectedDay && (departmentType !== 'lab' || item.subject_type === 'lab')), [entries, visibleClassIds, selectedDay, departmentType]);
 
   const entryAt = (classId: string, period: number) => visibleEntries.filter(item => item.class_id === classId && item.period === period);
-  const breakAfter: Record<number, string> = { 2: 'Interval', 4: 'Lunch', 6: 'Interval' };
+  const preferences = getTimetablePreferences();
+  const breakAfter: Record<number, string> = {};
+  if (preferences.intervalAfterPeriod > 0) breakAfter[preferences.intervalAfterPeriod] = 'Interval';
+  if (preferences.lunchAfterPeriod > 0) breakAfter[preferences.lunchAfterPeriod] = 'Lunch';
+  if (periods.length >= 7 && !breakAfter[6]) breakAfter[6] = 'Break';
   const classLabel = (item: any) => `Year ${item.year} · Semester ${item.semester}${item.section && item.section !== 'A' ? ` · ${item.section}` : ''}`;
 
   const exportSelectedDay = () => {
@@ -99,6 +109,7 @@ export default function MasterTimetablePage() {
         classes: visibleClasses.map(item => ({ id: item.id, label: classLabel(item) })),
         entries: visibleEntries,
         periods,
+        includeBreaks,
       });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Unable to export timetable');
@@ -174,7 +185,7 @@ export default function MasterTimetablePage() {
       ) : (
         <section className="card master-table-card" aria-label={`${selectedDepartment?.name || 'Department'} ${weekdays[selectedDay].label} master timetable`}>
           <div className="master-table-caption"><div><strong>{selectedDepartment?.name}</strong><span>{semesterType === 'odd' ? 'Odd' : 'Even'} semesters · {weekdays[selectedDay].label}</span></div><span>{visibleClasses.length} classes</span></div>
-          <div className="master-export-row"><label className="master-break-option"><span>Timetable intervals</span><select className="form-input" value={includeBreaks ? 'with-breaks' : 'periods-only'} onChange={event => setIncludeBreaks(event.target.value === 'with-breaks')}><option value="periods-only">Periods only</option><option value="with-breaks">Add intervals and lunch</option></select></label><div><button type="button" className="btn btn-secondary master-export" onClick={exportSelectedDay}><FileDown size={16} />Export {weekdays[selectedDay].label}</button><button type="button" className="btn btn-primary master-export" onClick={exportAllDays}><FileDown size={16} />Export all days</button></div></div>
+        <div className="master-export-row"><label className="master-break-option"><span>Timetable breaks</span><select className="form-input" value={includeBreaks ? 'with-breaks' : 'periods-only'} onChange={event => setIncludeBreaks(event.target.value === 'with-breaks')}><option value="periods-only">Periods only</option><option value="with-breaks">Show configured breaks (incl. after Period 6)</option></select></label><div><button type="button" className="btn btn-secondary master-export" onClick={exportSelectedDay}><FileDown size={16} />Export master timetable: {weekdays[selectedDay].label}</button><button type="button" className="btn btn-primary master-export" onClick={exportAllDays}><FileDown size={16} />Export master timetable: all days</button></div></div>
           <div className="master-table-scroll">
             <table className="master-table">
               <thead><tr><th>Class</th>{periods.map(period => <Fragment key={period.number}><th><strong>{period.label}</strong><span>{period.time}</span></th>{includeBreaks && breakAfter[period.number] && period.number < periods.length && <th className="master-break-column">{breakAfter[period.number]}</th>}</Fragment>)}</tr></thead>

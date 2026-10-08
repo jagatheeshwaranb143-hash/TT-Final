@@ -46,6 +46,14 @@ export const api = {
   settings: {
     get: () => request('/settings'),
     save: (data: unknown) => request('/settings', { method: 'PUT', body: JSON.stringify(data) }),
+    importTemplateStructure: async (file: File) => {
+      const token = getToken();
+      const body = new FormData();
+      body.append('file', file);
+      const response = await fetch(`${API_BASE}/api/v1/settings/template-structure`, { method: 'POST', body, headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      if (!response.ok) { const error = await response.json().catch(() => ({})); throw new Error(error.detail || 'Could not import timetable structure'); }
+      return response.json();
+    },
   },
   setup: {
     status: () => request('/users/setup-status'),
@@ -83,6 +91,7 @@ export const api = {
   classes: {
     list: (params?: Record<string, string>) => request(`/classes?${new URLSearchParams(params).toString()}`),
     create: (data: unknown) => request('/classes', { method: 'POST', body: JSON.stringify(data) }),
+    configure: (data: unknown) => request('/classes/setup', { method: 'POST', body: JSON.stringify(data) }),
     get: (id: string) => request(`/classes/${id}`),
     update: (id: string, data: unknown) => request(`/classes/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: (id: string) => request(`/classes/${id}`, { method: 'DELETE' }),

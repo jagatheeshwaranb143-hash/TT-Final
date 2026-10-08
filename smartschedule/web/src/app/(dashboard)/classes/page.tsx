@@ -15,9 +15,7 @@ export default function ClassesPage() {
     section: 'A',
   });
   const [submitting, setSubmitting] = useState(false);
-  const [departmentTypeFilter, setDepartmentTypeFilter] = useState<'department' | 'lab' | ''>('');
-  const [departmentFilter, setDepartmentFilter] = useState('');
-  const [formDepartmentType, setFormDepartmentType] = useState<'department' | 'lab' | ''>('');
+  const [departmentFilter, setDepartmentFilter] = useState('all');
   const [semesterFilter, setSemesterFilter] = useState(1);
 
   const departmentKey = (value: string = '') => value.toLowerCase().replace(/laboratory|lab/g, '').replace(/[^a-z0-9]/g, '');
@@ -82,7 +80,6 @@ export default function ClassesPage() {
 
       toast.success('Class created successfully!');
       setShowModal(false);
-      setFormDepartmentType('');
       setFormData({
         department_id: '',
         year_level: 1,
@@ -114,22 +111,18 @@ export default function ClassesPage() {
     3: '3rd Year (III)',
     4: '4th Year (IV)',
   };
-  const filteredDepartments = departments.filter(item => (item.department_type || 'department') === departmentTypeFilter);
-  const formDepartments = departments.filter(item => (item.department_type || 'department') === formDepartmentType);
+  const formDepartments = departments;
   const selectedFilterDepartment = departments.find(item => item.id === departmentFilter);
   const selectedFormDepartment = departments.find(item => item.id === formData.department_id);
-  const formLinkedLiteratureDepartment = formDepartmentType === 'lab'
+  const formLinkedLiteratureDepartment = selectedFormDepartment?.department_type === 'lab'
     ? getLiteratureDepartmentForLab(formData.department_id)
     : undefined;
-  const linkedLiteratureDepartment = departmentTypeFilter === 'lab'
+  const linkedLiteratureDepartment = selectedFilterDepartment?.department_type === 'lab'
     ? getLiteratureDepartmentForLab(departmentFilter)
     : undefined;
   const classDepartmentId = linkedLiteratureDepartment?.id || departmentFilter;
-  const allDepartmentIds = departmentTypeFilter === 'lab'
-    ? filteredDepartments.map(item => getLiteratureDepartmentForLab(item.id)?.id).filter(Boolean)
-    : filteredDepartments.map(item => item.id);
+  const allDepartmentIds = departments.filter(item => (item.department_type || 'department') !== 'lab').map(item => item.id);
   const filteredClasses = classesList.filter(item =>
-    Boolean(departmentTypeFilter && departmentFilter) &&
     (departmentFilter === 'all' ? allDepartmentIds.includes(item.department_id) : item.department_id === classDepartmentId) &&
     item.semester === semesterFilter
   );
@@ -167,8 +160,7 @@ export default function ClassesPage() {
 
       <div className="card" style={{ marginBottom: 22, padding: 18 }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'end', flexWrap: 'wrap', marginBottom: 14 }}>
-          <div style={{ minWidth: 220, flex: 1 }}><label className="form-label">Department type</label><select className="form-input" value={departmentTypeFilter} onChange={event => { setDepartmentTypeFilter(event.target.value as 'department' | 'lab' | ''); setDepartmentFilter(''); }} style={{ marginTop: 6, color: departmentTypeFilter ? '#334155' : '#94a3b8' }}><option value="" disabled hidden>Choose department type</option><option value="department">Literature Department</option><option value="lab">Lab Department</option></select></div>
-          <div style={{ minWidth: 280, flex: 1 }}><label className="form-label">Department</label><select className="form-input" value={departmentFilter} onChange={event => setDepartmentFilter(event.target.value)} disabled={!departmentTypeFilter} style={{ marginTop: 6, color: departmentFilter ? '#334155' : '#94a3b8' }}><option value="" disabled hidden>{departmentTypeFilter ? 'Choose department' : 'Choose department type first'}</option><option value="all">All Departments</option>{filteredDepartments.map(item => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}</select></div>
+          <div style={{ minWidth: 280, flex: 1 }}><label className="form-label">Department</label><select className="form-input" value={departmentFilter} onChange={event => setDepartmentFilter(event.target.value)} style={{ marginTop: 6, color: '#334155' }}><option value="all">All Departments</option>{departments.map(item => <option key={item.id} value={item.id}>{item.name} ({item.code}){item.department_type === 'lab' ? ' - Lab' : ''}</option>)}</select></div>
           <div style={{ color: '#64748b', fontSize: 13, paddingBottom: 10 }}>{filteredClasses.length} class{filteredClasses.length === 1 ? '' : 'es'} in Semester {semesterFilter}</div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(82px, 1fr))', gap: 8, overflowX: 'auto' }}>{[1,2,3,4,5,6,7,8].map(semester => <button key={semester} type="button" onClick={() => setSemesterFilter(semester)} style={{ padding: '10px 12px', borderRadius: 8, border: semesterFilter === semester ? '1px solid #0f766e' : '1px solid #dbe3ee', background: semesterFilter === semester ? '#0f766e' : '#fff', color: semesterFilter === semester ? '#fff' : '#475569', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>Sem {semester}</button>)}</div>
@@ -216,8 +208,8 @@ export default function ClassesPage() {
               >
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <span style={{ background: departmentTypeFilter === 'lab' ? '#f3e8ff' : '#dbeafe', color: departmentTypeFilter === 'lab' ? '#7c3aed' : '#1e40af', fontWeight: 800, padding: '4px 10px', borderRadius: '6px', fontSize: '0.85rem' }}>
-                      {departmentTypeFilter === 'lab' ? 'Lab Class' : 'Class'}
+                    <span style={{ background: selectedFilterDepartment?.department_type === 'lab' ? '#f3e8ff' : '#dbeafe', color: selectedFilterDepartment?.department_type === 'lab' ? '#7c3aed' : '#1e40af', fontWeight: 800, padding: '4px 10px', borderRadius: '6px', fontSize: '0.85rem' }}>
+                      {selectedFilterDepartment?.department_type === 'lab' ? 'Lab Class' : 'Class'}
                     </span>
                     <button
                       onClick={() => handleDelete(cls.id, `${cls.department_name || 'Class'} Year ${cls.year}`)}
@@ -227,9 +219,9 @@ export default function ClassesPage() {
                       Delete
                     </button>
                   </div>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.35rem' }}>{departmentTypeFilter === 'lab' && departmentFilter !== 'all' ? selectedFilterDepartment?.name : cls.department_name || 'Class'}  Semester {cls.semester}</h3>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.35rem' }}>{cls.department_name || 'Class'}  Semester {cls.semester}</h3>
                   <div style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '0.5rem' }}>
-                    <strong>{departmentTypeFilter === 'lab' ? 'Linked Dept:' : 'Dept:'}</strong> {dept ? `${dept.name} (${dept.code})` : 'Department'}
+                    <strong>Department:</strong> {dept ? `${dept.name} (${dept.code})` : 'Department'}
                   </div>
                   <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', color: '#64748b' }}>
                     <span> {YEAR_LABELS[cls.year] || `Year ${cls.year}`}</span>
@@ -260,14 +252,7 @@ export default function ClassesPage() {
           <div style={{ background: 'white', borderRadius: '14px', padding: '2rem', width: '100%', maxWidth: '620px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)' }}>
             <h2 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: '1.5rem', color: '#0f172a' }}>Add New Class</h2>
             <form onSubmit={handleCreate}>
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Department Type</label>
-                <select value={formDepartmentType} onChange={(e) => { setFormDepartmentType(e.target.value as 'department' | 'lab' | ''); setFormData({ ...formData, department_id: '' }); }} style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem' }} required>
-                  <option value="" disabled hidden>Choose department type</option><option value="department">Literature Department</option><option value="lab">Lab Department</option>
-                </select>
-              </div>
-
-              {formDepartmentType === 'lab' && formData.department_id && (
+              {selectedFormDepartment?.department_type === 'lab' && formData.department_id && (
                 <div style={{ margin: '-0.25rem 0 1rem', padding: '11px 13px', borderRadius: 8, border: '1px solid #ddd6fe', background: '#faf5ff', color: '#6d28d9', fontSize: 13 }}>
                   <strong>Lab Class:</strong> {selectedFormDepartment?.name || 'Selected lab'}
                   {formLinkedLiteratureDepartment
@@ -280,13 +265,12 @@ export default function ClassesPage() {
                 <select
                   value={formData.department_id}
                   onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
-                  disabled={!formDepartmentType}
                   style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem' }}
                   required
                 >
-                  <option value="" disabled hidden>{formDepartmentType ? 'Choose department' : 'Choose department type first'}</option>
+                  <option value="" disabled hidden>Choose department</option>
                   {formDepartments.map((d) => (
-                    <option key={d.id} value={d.id}>{d.name} ({d.code})</option>
+                    <option key={d.id} value={d.id}>{d.name} ({d.code}){d.department_type === 'lab' ? ' - Lab' : ''}</option>
                   ))}
                 </select>
               </div>

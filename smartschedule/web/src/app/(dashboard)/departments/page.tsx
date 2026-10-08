@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<any[]>([]);
+  const [departmentTypeFilter, setDepartmentTypeFilter] = useState<'all' | 'department' | 'lab'>('all');
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState<{ name: string; code: string; department_type: 'department' | 'lab' }>({ name: '', code: '', department_type: 'department' });
@@ -27,6 +28,8 @@ export default function DepartmentsPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const visibleDepartments = departments.filter(dept => departmentTypeFilter === 'all' || (dept.department_type || 'department') === departmentTypeFilter);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,8 +90,15 @@ export default function DepartmentsPage() {
           <button onClick={() => setShowModal(true)} style={{ background: '#2563eb', color: 'white', border: 'none', padding: '0.625rem 1.25rem', borderRadius: '8px', cursor: 'pointer' }}>+ Add Department</button>
         </div>
       ) : (
+        <>
+        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, padding: 16, maxWidth: 460 }}>
+          <label htmlFor="department-type-filter" style={{ color: '#334155', fontWeight: 700 }}>Department type</label>
+          <select id="department-type-filter" className="form-input" value={departmentTypeFilter} onChange={event => setDepartmentTypeFilter(event.target.value as 'all' | 'department' | 'lab')}>
+            <option value="all">Show all</option><option value="department">Literature Department</option><option value="lab">Lab Department</option>
+          </select>
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.5rem' }}>
-          {departments.map((dept) => (
+          {visibleDepartments.map((dept) => (
             <div
               key={dept.id}
               style={{
@@ -122,6 +132,7 @@ export default function DepartmentsPage() {
             </div>
           ))}
         </div>
+        </>
       )}
 
       {/* Modal */}
