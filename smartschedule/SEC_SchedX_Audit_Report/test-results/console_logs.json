@@ -1,0 +1,4114 @@
+[
+  {
+    "type": "info",
+    "args": [
+      {
+        "type": "string",
+        "value": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools"
+      },
+      {
+        "type": "string",
+        "value": "font-weight:bold"
+      }
+    ],
+    "executionContextId": 5,
+    "timestamp": 1792303551325.96,
+    "stackTrace": {
+      "callFrames": [
+        {
+          "functionName": "console.<computed>",
+          "scriptId": "3",
+          "url": "",
+          "lineNumber": 57,
+          "columnNumber": 29
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "42",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38559,
+          "columnNumber": 16
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "42",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38594,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "scriptId": "17",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303550313",
+          "lineNumber": 1824,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "18",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303550313",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "18",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303550313",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "18",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303550313",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "41",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "lineNumber": 31,
+          "columnNumber": 19
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "scriptId": "17",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303550313",
+          "lineNumber": 1846,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "18",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303550313",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "18",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303550313",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "18",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303550313",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "40",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "lineNumber": 2,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "scriptId": "17",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303550313",
+          "lineNumber": 1835,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "18",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303550313",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "18",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303550313",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "18",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303550313",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "32",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "lineNumber": 14,
+          "columnNumber": 57
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "scriptId": "17",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303550313",
+          "lineNumber": 243,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "18",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303550313",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "18",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303550313",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "18",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303550313",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "28",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 8,
+          "columnNumber": 24
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "31",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 56,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "loadScriptsInSequence",
+          "scriptId": "31",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 22,
+          "columnNumber": 15
+        },
+        {
+          "functionName": "appBootstrap",
+          "scriptId": "31",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 55,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "28",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 7,
+          "columnNumber": 31
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "scriptId": "17",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303550313",
+          "lineNumber": 265,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "18",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303550313",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "18",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303550313",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "__webpack_exec__",
+          "scriptId": "17",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303550313",
+          "lineNumber": 1984,
+          "columnNumber": 60
+        },
+        {
+          "functionName": "",
+          "scriptId": "17",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303550313",
+          "lineNumber": 1985,
+          "columnNumber": 153
+        },
+        {
+          "functionName": "webpackJsonpCallback",
+          "scriptId": "18",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303550313",
+          "lineNumber": 1386,
+          "columnNumber": 38
+        },
+        {
+          "functionName": "",
+          "scriptId": "17",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303550313",
+          "lineNumber": 8,
+          "columnNumber": 60
+        }
+      ]
+    }
+  },
+  {
+    "type": "info",
+    "args": [
+      {
+        "type": "string",
+        "value": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools"
+      },
+      {
+        "type": "string",
+        "value": "font-weight:bold"
+      }
+    ],
+    "executionContextId": 7,
+    "timestamp": 1792303553481.855,
+    "stackTrace": {
+      "callFrames": [
+        {
+          "functionName": "console.<computed>",
+          "scriptId": "3",
+          "url": "",
+          "lineNumber": 57,
+          "columnNumber": 29
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "262",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38559,
+          "columnNumber": 16
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "262",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38594,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "scriptId": "235",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303552136",
+          "lineNumber": 1824,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "232",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303552136",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "232",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303552136",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "232",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303552136",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "261",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "lineNumber": 31,
+          "columnNumber": 19
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "scriptId": "235",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303552136",
+          "lineNumber": 1846,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "232",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303552136",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "232",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303552136",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "232",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303552136",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "260",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "lineNumber": 2,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "scriptId": "235",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303552136",
+          "lineNumber": 1835,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "232",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303552136",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "232",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303552136",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "232",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303552136",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "252",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "lineNumber": 14,
+          "columnNumber": 57
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "scriptId": "235",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303552136",
+          "lineNumber": 243,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "232",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303552136",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "232",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303552136",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "232",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303552136",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "248",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 8,
+          "columnNumber": 24
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "251",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 56,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "loadScriptsInSequence",
+          "scriptId": "251",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 22,
+          "columnNumber": 15
+        },
+        {
+          "functionName": "appBootstrap",
+          "scriptId": "251",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 55,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "248",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 7,
+          "columnNumber": 31
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "scriptId": "235",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303552136",
+          "lineNumber": 265,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "232",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303552136",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "232",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303552136",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "__webpack_exec__",
+          "scriptId": "235",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303552136",
+          "lineNumber": 1984,
+          "columnNumber": 60
+        },
+        {
+          "functionName": "",
+          "scriptId": "235",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303552136",
+          "lineNumber": 1985,
+          "columnNumber": 153
+        },
+        {
+          "functionName": "webpackJsonpCallback",
+          "scriptId": "232",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303552136",
+          "lineNumber": 1386,
+          "columnNumber": 38
+        },
+        {
+          "functionName": "",
+          "scriptId": "235",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303552136",
+          "lineNumber": 8,
+          "columnNumber": 60
+        }
+      ]
+    }
+  },
+  {
+    "type": "info",
+    "args": [
+      {
+        "type": "string",
+        "value": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools"
+      },
+      {
+        "type": "string",
+        "value": "font-weight:bold"
+      }
+    ],
+    "executionContextId": 9,
+    "timestamp": 1792303559724.974,
+    "stackTrace": {
+      "callFrames": [
+        {
+          "functionName": "console.<computed>",
+          "scriptId": "3",
+          "url": "",
+          "lineNumber": 57,
+          "columnNumber": 29
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "461",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38559,
+          "columnNumber": 16
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "461",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38594,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "scriptId": "429",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303558797",
+          "lineNumber": 1824,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "430",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303558797",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "430",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303558797",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "430",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303558797",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "460",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "lineNumber": 31,
+          "columnNumber": 19
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "scriptId": "429",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303558797",
+          "lineNumber": 1846,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "430",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303558797",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "430",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303558797",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "430",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303558797",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "459",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "lineNumber": 2,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "scriptId": "429",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303558797",
+          "lineNumber": 1835,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "430",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303558797",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "430",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303558797",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "430",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303558797",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "451",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "lineNumber": 14,
+          "columnNumber": 57
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "scriptId": "429",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303558797",
+          "lineNumber": 243,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "430",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303558797",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "430",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303558797",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "430",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303558797",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "447",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 8,
+          "columnNumber": 24
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "450",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 56,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "loadScriptsInSequence",
+          "scriptId": "450",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 22,
+          "columnNumber": 15
+        },
+        {
+          "functionName": "appBootstrap",
+          "scriptId": "450",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 55,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "447",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 7,
+          "columnNumber": 31
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "scriptId": "429",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303558797",
+          "lineNumber": 265,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "430",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303558797",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "430",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303558797",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "__webpack_exec__",
+          "scriptId": "429",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303558797",
+          "lineNumber": 1984,
+          "columnNumber": 60
+        },
+        {
+          "functionName": "",
+          "scriptId": "429",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303558797",
+          "lineNumber": 1985,
+          "columnNumber": 153
+        },
+        {
+          "functionName": "webpackJsonpCallback",
+          "scriptId": "430",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303558797",
+          "lineNumber": 1386,
+          "columnNumber": 38
+        },
+        {
+          "functionName": "",
+          "scriptId": "429",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303558797",
+          "lineNumber": 8,
+          "columnNumber": 60
+        }
+      ]
+    }
+  },
+  {
+    "type": "info",
+    "args": [
+      {
+        "type": "string",
+        "value": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools"
+      },
+      {
+        "type": "string",
+        "value": "font-weight:bold"
+      }
+    ],
+    "executionContextId": 11,
+    "timestamp": 1792303563771.175,
+    "stackTrace": {
+      "callFrames": [
+        {
+          "functionName": "console.<computed>",
+          "scriptId": "3",
+          "url": "",
+          "lineNumber": 57,
+          "columnNumber": 29
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "710",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38559,
+          "columnNumber": 16
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "710",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38594,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "scriptId": "679",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303563140",
+          "lineNumber": 1824,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "678",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303563140",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "678",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303563140",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "678",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303563140",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "709",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "lineNumber": 31,
+          "columnNumber": 19
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "scriptId": "679",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303563140",
+          "lineNumber": 1846,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "678",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303563140",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "678",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303563140",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "678",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303563140",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "708",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "lineNumber": 2,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "scriptId": "679",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303563140",
+          "lineNumber": 1835,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "678",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303563140",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "678",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303563140",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "678",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303563140",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "700",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "lineNumber": 14,
+          "columnNumber": 57
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "scriptId": "679",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303563140",
+          "lineNumber": 243,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "678",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303563140",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "678",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303563140",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "678",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303563140",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "696",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 8,
+          "columnNumber": 24
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "699",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 56,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "loadScriptsInSequence",
+          "scriptId": "699",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 22,
+          "columnNumber": 15
+        },
+        {
+          "functionName": "appBootstrap",
+          "scriptId": "699",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 55,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "696",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 7,
+          "columnNumber": 31
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "scriptId": "679",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303563140",
+          "lineNumber": 265,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "678",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303563140",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "678",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303563140",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "__webpack_exec__",
+          "scriptId": "679",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303563140",
+          "lineNumber": 1984,
+          "columnNumber": 60
+        },
+        {
+          "functionName": "",
+          "scriptId": "679",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303563140",
+          "lineNumber": 1985,
+          "columnNumber": 153
+        },
+        {
+          "functionName": "webpackJsonpCallback",
+          "scriptId": "678",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303563140",
+          "lineNumber": 1386,
+          "columnNumber": 38
+        },
+        {
+          "functionName": "",
+          "scriptId": "679",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303563140",
+          "lineNumber": 8,
+          "columnNumber": 60
+        }
+      ]
+    }
+  },
+  {
+    "type": "info",
+    "args": [
+      {
+        "type": "string",
+        "value": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools"
+      },
+      {
+        "type": "string",
+        "value": "font-weight:bold"
+      }
+    ],
+    "executionContextId": 13,
+    "timestamp": 1792303568059.64,
+    "stackTrace": {
+      "callFrames": [
+        {
+          "functionName": "console.<computed>",
+          "scriptId": "3",
+          "url": "",
+          "lineNumber": 57,
+          "columnNumber": 29
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "938",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38559,
+          "columnNumber": 16
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "938",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38594,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "scriptId": "907",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303567461",
+          "lineNumber": 1824,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "906",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303567461",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "906",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303567461",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "906",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303567461",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "937",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "lineNumber": 31,
+          "columnNumber": 19
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "scriptId": "907",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303567461",
+          "lineNumber": 1846,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "906",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303567461",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "906",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303567461",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "906",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303567461",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "936",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "lineNumber": 2,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "scriptId": "907",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303567461",
+          "lineNumber": 1835,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "906",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303567461",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "906",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303567461",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "906",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303567461",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "928",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "lineNumber": 14,
+          "columnNumber": 57
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "scriptId": "907",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303567461",
+          "lineNumber": 243,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "906",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303567461",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "906",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303567461",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "906",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303567461",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "924",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 8,
+          "columnNumber": 24
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "927",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 56,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "loadScriptsInSequence",
+          "scriptId": "927",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 22,
+          "columnNumber": 15
+        },
+        {
+          "functionName": "appBootstrap",
+          "scriptId": "927",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 55,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "924",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 7,
+          "columnNumber": 31
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "scriptId": "907",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303567461",
+          "lineNumber": 265,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "906",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303567461",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "906",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303567461",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "__webpack_exec__",
+          "scriptId": "907",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303567461",
+          "lineNumber": 1984,
+          "columnNumber": 60
+        },
+        {
+          "functionName": "",
+          "scriptId": "907",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303567461",
+          "lineNumber": 1985,
+          "columnNumber": 153
+        },
+        {
+          "functionName": "webpackJsonpCallback",
+          "scriptId": "906",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303567461",
+          "lineNumber": 1386,
+          "columnNumber": 38
+        },
+        {
+          "functionName": "",
+          "scriptId": "907",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303567461",
+          "lineNumber": 8,
+          "columnNumber": 60
+        }
+      ]
+    }
+  },
+  {
+    "type": "info",
+    "args": [
+      {
+        "type": "string",
+        "value": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools"
+      },
+      {
+        "type": "string",
+        "value": "font-weight:bold"
+      }
+    ],
+    "executionContextId": 15,
+    "timestamp": 1792303572345.016,
+    "stackTrace": {
+      "callFrames": [
+        {
+          "functionName": "console.<computed>",
+          "scriptId": "3",
+          "url": "",
+          "lineNumber": 57,
+          "columnNumber": 29
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1133",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38559,
+          "columnNumber": 16
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1133",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38594,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "scriptId": "1104",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303571788",
+          "lineNumber": 1824,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1101",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303571788",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1101",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303571788",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1101",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303571788",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1132",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "lineNumber": 31,
+          "columnNumber": 19
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "scriptId": "1104",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303571788",
+          "lineNumber": 1846,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1101",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303571788",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1101",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303571788",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1101",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303571788",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1131",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "lineNumber": 2,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "scriptId": "1104",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303571788",
+          "lineNumber": 1835,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1101",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303571788",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1101",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303571788",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1101",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303571788",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1123",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "lineNumber": 14,
+          "columnNumber": 57
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "scriptId": "1104",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303571788",
+          "lineNumber": 243,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1101",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303571788",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1101",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303571788",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1101",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303571788",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1119",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 8,
+          "columnNumber": 24
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1122",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 56,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "loadScriptsInSequence",
+          "scriptId": "1122",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 22,
+          "columnNumber": 15
+        },
+        {
+          "functionName": "appBootstrap",
+          "scriptId": "1122",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 55,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1119",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 7,
+          "columnNumber": 31
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "scriptId": "1104",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303571788",
+          "lineNumber": 265,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1101",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303571788",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1101",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303571788",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "__webpack_exec__",
+          "scriptId": "1104",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303571788",
+          "lineNumber": 1984,
+          "columnNumber": 60
+        },
+        {
+          "functionName": "",
+          "scriptId": "1104",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303571788",
+          "lineNumber": 1985,
+          "columnNumber": 153
+        },
+        {
+          "functionName": "webpackJsonpCallback",
+          "scriptId": "1101",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303571788",
+          "lineNumber": 1386,
+          "columnNumber": 38
+        },
+        {
+          "functionName": "",
+          "scriptId": "1104",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303571788",
+          "lineNumber": 8,
+          "columnNumber": 60
+        }
+      ]
+    }
+  },
+  {
+    "type": "info",
+    "args": [
+      {
+        "type": "string",
+        "value": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools"
+      },
+      {
+        "type": "string",
+        "value": "font-weight:bold"
+      }
+    ],
+    "executionContextId": 17,
+    "timestamp": 1792303576705.825,
+    "stackTrace": {
+      "callFrames": [
+        {
+          "functionName": "console.<computed>",
+          "scriptId": "3",
+          "url": "",
+          "lineNumber": 57,
+          "columnNumber": 29
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1355",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38559,
+          "columnNumber": 16
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1355",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38594,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "scriptId": "1324",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303576074",
+          "lineNumber": 1824,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1323",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303576074",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1323",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303576074",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1323",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303576074",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1354",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "lineNumber": 31,
+          "columnNumber": 19
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "scriptId": "1324",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303576074",
+          "lineNumber": 1846,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1323",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303576074",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1323",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303576074",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1323",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303576074",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1353",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "lineNumber": 2,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "scriptId": "1324",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303576074",
+          "lineNumber": 1835,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1323",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303576074",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1323",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303576074",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1323",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303576074",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1345",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "lineNumber": 14,
+          "columnNumber": 57
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "scriptId": "1324",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303576074",
+          "lineNumber": 243,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1323",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303576074",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1323",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303576074",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1323",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303576074",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1341",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 8,
+          "columnNumber": 24
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1344",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 56,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "loadScriptsInSequence",
+          "scriptId": "1344",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 22,
+          "columnNumber": 15
+        },
+        {
+          "functionName": "appBootstrap",
+          "scriptId": "1344",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 55,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1341",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 7,
+          "columnNumber": 31
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "scriptId": "1324",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303576074",
+          "lineNumber": 265,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1323",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303576074",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1323",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303576074",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "__webpack_exec__",
+          "scriptId": "1324",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303576074",
+          "lineNumber": 1984,
+          "columnNumber": 60
+        },
+        {
+          "functionName": "",
+          "scriptId": "1324",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303576074",
+          "lineNumber": 1985,
+          "columnNumber": 153
+        },
+        {
+          "functionName": "webpackJsonpCallback",
+          "scriptId": "1323",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303576074",
+          "lineNumber": 1386,
+          "columnNumber": 38
+        },
+        {
+          "functionName": "",
+          "scriptId": "1324",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303576074",
+          "lineNumber": 8,
+          "columnNumber": 60
+        }
+      ]
+    }
+  },
+  {
+    "type": "info",
+    "args": [
+      {
+        "type": "string",
+        "value": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools"
+      },
+      {
+        "type": "string",
+        "value": "font-weight:bold"
+      }
+    ],
+    "executionContextId": 19,
+    "timestamp": 1792303581407.823,
+    "stackTrace": {
+      "callFrames": [
+        {
+          "functionName": "console.<computed>",
+          "scriptId": "3",
+          "url": "",
+          "lineNumber": 57,
+          "columnNumber": 29
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1575",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38559,
+          "columnNumber": 16
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1575",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38594,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "scriptId": "1544",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303580394",
+          "lineNumber": 1824,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1543",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303580394",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1543",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303580394",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1543",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303580394",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1574",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "lineNumber": 31,
+          "columnNumber": 19
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "scriptId": "1544",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303580394",
+          "lineNumber": 1846,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1543",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303580394",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1543",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303580394",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1543",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303580394",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1573",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "lineNumber": 2,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "scriptId": "1544",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303580394",
+          "lineNumber": 1835,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1543",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303580394",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1543",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303580394",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1543",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303580394",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1565",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "lineNumber": 14,
+          "columnNumber": 57
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "scriptId": "1544",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303580394",
+          "lineNumber": 243,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1543",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303580394",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1543",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303580394",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1543",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303580394",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1561",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 8,
+          "columnNumber": 24
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1564",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 56,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "loadScriptsInSequence",
+          "scriptId": "1564",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 22,
+          "columnNumber": 15
+        },
+        {
+          "functionName": "appBootstrap",
+          "scriptId": "1564",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 55,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1561",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 7,
+          "columnNumber": 31
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "scriptId": "1544",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303580394",
+          "lineNumber": 265,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1543",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303580394",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1543",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303580394",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "__webpack_exec__",
+          "scriptId": "1544",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303580394",
+          "lineNumber": 1984,
+          "columnNumber": 60
+        },
+        {
+          "functionName": "",
+          "scriptId": "1544",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303580394",
+          "lineNumber": 1985,
+          "columnNumber": 153
+        },
+        {
+          "functionName": "webpackJsonpCallback",
+          "scriptId": "1543",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303580394",
+          "lineNumber": 1386,
+          "columnNumber": 38
+        },
+        {
+          "functionName": "",
+          "scriptId": "1544",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303580394",
+          "lineNumber": 8,
+          "columnNumber": 60
+        }
+      ]
+    }
+  },
+  {
+    "type": "info",
+    "args": [
+      {
+        "type": "string",
+        "value": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools"
+      },
+      {
+        "type": "string",
+        "value": "font-weight:bold"
+      }
+    ],
+    "executionContextId": 21,
+    "timestamp": 1792303584278.443,
+    "stackTrace": {
+      "callFrames": [
+        {
+          "functionName": "console.<computed>",
+          "scriptId": "3",
+          "url": "",
+          "lineNumber": 57,
+          "columnNumber": 29
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1770",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38559,
+          "columnNumber": 16
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1770",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38594,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "scriptId": "1739",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303583677",
+          "lineNumber": 1824,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1738",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303583677",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1738",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303583677",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1738",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303583677",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1769",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "lineNumber": 31,
+          "columnNumber": 19
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "scriptId": "1739",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303583677",
+          "lineNumber": 1846,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1738",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303583677",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1738",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303583677",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1738",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303583677",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1768",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "lineNumber": 2,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "scriptId": "1739",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303583677",
+          "lineNumber": 1835,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1738",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303583677",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1738",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303583677",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1738",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303583677",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1760",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "lineNumber": 14,
+          "columnNumber": 57
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "scriptId": "1739",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303583677",
+          "lineNumber": 243,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1738",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303583677",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1738",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303583677",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1738",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303583677",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1756",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 8,
+          "columnNumber": 24
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1759",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 56,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "loadScriptsInSequence",
+          "scriptId": "1759",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 22,
+          "columnNumber": 15
+        },
+        {
+          "functionName": "appBootstrap",
+          "scriptId": "1759",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 55,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1756",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 7,
+          "columnNumber": 31
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "scriptId": "1739",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303583677",
+          "lineNumber": 265,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1738",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303583677",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1738",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303583677",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "__webpack_exec__",
+          "scriptId": "1739",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303583677",
+          "lineNumber": 1984,
+          "columnNumber": 60
+        },
+        {
+          "functionName": "",
+          "scriptId": "1739",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303583677",
+          "lineNumber": 1985,
+          "columnNumber": 153
+        },
+        {
+          "functionName": "webpackJsonpCallback",
+          "scriptId": "1738",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303583677",
+          "lineNumber": 1386,
+          "columnNumber": 38
+        },
+        {
+          "functionName": "",
+          "scriptId": "1739",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303583677",
+          "lineNumber": 8,
+          "columnNumber": 60
+        }
+      ]
+    }
+  },
+  {
+    "type": "info",
+    "args": [
+      {
+        "type": "string",
+        "value": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools"
+      },
+      {
+        "type": "string",
+        "value": "font-weight:bold"
+      }
+    ],
+    "executionContextId": 23,
+    "timestamp": 1792303590956.053,
+    "stackTrace": {
+      "callFrames": [
+        {
+          "functionName": "console.<computed>",
+          "scriptId": "3",
+          "url": "",
+          "lineNumber": 57,
+          "columnNumber": 29
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1971",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38559,
+          "columnNumber": 16
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1971",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38594,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "scriptId": "1948",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303590322",
+          "lineNumber": 1824,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1939",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303590322",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1939",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303590322",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1939",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303590322",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1970",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "lineNumber": 31,
+          "columnNumber": 19
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "scriptId": "1948",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303590322",
+          "lineNumber": 1846,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1939",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303590322",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1939",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303590322",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1939",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303590322",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1969",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "lineNumber": 2,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "scriptId": "1948",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303590322",
+          "lineNumber": 1835,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1939",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303590322",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1939",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303590322",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1939",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303590322",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1961",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "lineNumber": 14,
+          "columnNumber": 57
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "scriptId": "1948",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303590322",
+          "lineNumber": 243,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1939",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303590322",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1939",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303590322",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "1939",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303590322",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1957",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 8,
+          "columnNumber": 24
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1960",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 56,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "loadScriptsInSequence",
+          "scriptId": "1960",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 22,
+          "columnNumber": 15
+        },
+        {
+          "functionName": "appBootstrap",
+          "scriptId": "1960",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 55,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "1957",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 7,
+          "columnNumber": 31
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "scriptId": "1948",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303590322",
+          "lineNumber": 265,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "1939",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303590322",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "1939",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303590322",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "__webpack_exec__",
+          "scriptId": "1948",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303590322",
+          "lineNumber": 1984,
+          "columnNumber": 60
+        },
+        {
+          "functionName": "",
+          "scriptId": "1948",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303590322",
+          "lineNumber": 1985,
+          "columnNumber": 153
+        },
+        {
+          "functionName": "webpackJsonpCallback",
+          "scriptId": "1939",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303590322",
+          "lineNumber": 1386,
+          "columnNumber": 38
+        },
+        {
+          "functionName": "",
+          "scriptId": "1948",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303590322",
+          "lineNumber": 8,
+          "columnNumber": 60
+        }
+      ]
+    }
+  },
+  {
+    "type": "info",
+    "args": [
+      {
+        "type": "string",
+        "value": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools"
+      },
+      {
+        "type": "string",
+        "value": "font-weight:bold"
+      }
+    ],
+    "executionContextId": 25,
+    "timestamp": 1792303594291.621,
+    "stackTrace": {
+      "callFrames": [
+        {
+          "functionName": "console.<computed>",
+          "scriptId": "3",
+          "url": "",
+          "lineNumber": 57,
+          "columnNumber": 29
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2171",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38559,
+          "columnNumber": 16
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2171",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38594,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "scriptId": "2141",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303593714",
+          "lineNumber": 1824,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2139",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303593714",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2139",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303593714",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "2139",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303593714",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2170",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "lineNumber": 31,
+          "columnNumber": 19
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "scriptId": "2141",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303593714",
+          "lineNumber": 1846,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2139",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303593714",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2139",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303593714",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "2139",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303593714",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2169",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "lineNumber": 2,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "scriptId": "2141",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303593714",
+          "lineNumber": 1835,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2139",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303593714",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2139",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303593714",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "2139",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303593714",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2161",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "lineNumber": 14,
+          "columnNumber": 57
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "scriptId": "2141",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303593714",
+          "lineNumber": 243,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2139",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303593714",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2139",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303593714",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "2139",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303593714",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2157",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 8,
+          "columnNumber": 24
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2160",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 56,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "loadScriptsInSequence",
+          "scriptId": "2160",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 22,
+          "columnNumber": 15
+        },
+        {
+          "functionName": "appBootstrap",
+          "scriptId": "2160",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 55,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2157",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 7,
+          "columnNumber": 31
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "scriptId": "2141",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303593714",
+          "lineNumber": 265,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2139",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303593714",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2139",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303593714",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "__webpack_exec__",
+          "scriptId": "2141",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303593714",
+          "lineNumber": 1984,
+          "columnNumber": 60
+        },
+        {
+          "functionName": "",
+          "scriptId": "2141",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303593714",
+          "lineNumber": 1985,
+          "columnNumber": 153
+        },
+        {
+          "functionName": "webpackJsonpCallback",
+          "scriptId": "2139",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303593714",
+          "lineNumber": 1386,
+          "columnNumber": 38
+        },
+        {
+          "functionName": "",
+          "scriptId": "2141",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303593714",
+          "lineNumber": 8,
+          "columnNumber": 60
+        }
+      ]
+    }
+  },
+  {
+    "type": "info",
+    "args": [
+      {
+        "type": "string",
+        "value": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools"
+      },
+      {
+        "type": "string",
+        "value": "font-weight:bold"
+      }
+    ],
+    "executionContextId": 27,
+    "timestamp": 1792303605207.944,
+    "stackTrace": {
+      "callFrames": [
+        {
+          "functionName": "console.<computed>",
+          "scriptId": "3",
+          "url": "",
+          "lineNumber": 57,
+          "columnNumber": 29
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2399",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38559,
+          "columnNumber": 16
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2399",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38594,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "scriptId": "2376",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303604407",
+          "lineNumber": 1824,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2367",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303604407",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2367",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303604407",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "2367",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303604407",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2398",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "lineNumber": 31,
+          "columnNumber": 19
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "scriptId": "2376",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303604407",
+          "lineNumber": 1846,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2367",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303604407",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2367",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303604407",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "2367",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303604407",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2397",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "lineNumber": 2,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "scriptId": "2376",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303604407",
+          "lineNumber": 1835,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2367",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303604407",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2367",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303604407",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "2367",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303604407",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2389",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "lineNumber": 14,
+          "columnNumber": 57
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "scriptId": "2376",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303604407",
+          "lineNumber": 243,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2367",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303604407",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2367",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303604407",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "2367",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303604407",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2385",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 8,
+          "columnNumber": 24
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2388",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 56,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "loadScriptsInSequence",
+          "scriptId": "2388",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 22,
+          "columnNumber": 15
+        },
+        {
+          "functionName": "appBootstrap",
+          "scriptId": "2388",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 55,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2385",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 7,
+          "columnNumber": 31
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "scriptId": "2376",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303604407",
+          "lineNumber": 265,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2367",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303604407",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2367",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303604407",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "__webpack_exec__",
+          "scriptId": "2376",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303604407",
+          "lineNumber": 1984,
+          "columnNumber": 60
+        },
+        {
+          "functionName": "",
+          "scriptId": "2376",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303604407",
+          "lineNumber": 1985,
+          "columnNumber": 153
+        },
+        {
+          "functionName": "webpackJsonpCallback",
+          "scriptId": "2367",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303604407",
+          "lineNumber": 1386,
+          "columnNumber": 38
+        },
+        {
+          "functionName": "",
+          "scriptId": "2376",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303604407",
+          "lineNumber": 8,
+          "columnNumber": 60
+        }
+      ]
+    }
+  },
+  {
+    "type": "info",
+    "args": [
+      {
+        "type": "string",
+        "value": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools"
+      },
+      {
+        "type": "string",
+        "value": "font-weight:bold"
+      }
+    ],
+    "executionContextId": 29,
+    "timestamp": 1792303610327.142,
+    "stackTrace": {
+      "callFrames": [
+        {
+          "functionName": "console.<computed>",
+          "scriptId": "3",
+          "url": "",
+          "lineNumber": 57,
+          "columnNumber": 29
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2601",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38559,
+          "columnNumber": 16
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2601",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38594,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "scriptId": "2570",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303609499",
+          "lineNumber": 1824,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2569",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303609499",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2569",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303609499",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "2569",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303609499",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2600",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "lineNumber": 31,
+          "columnNumber": 19
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "scriptId": "2570",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303609499",
+          "lineNumber": 1846,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2569",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303609499",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2569",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303609499",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "2569",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303609499",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2599",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "lineNumber": 2,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "scriptId": "2570",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303609499",
+          "lineNumber": 1835,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2569",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303609499",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2569",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303609499",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "2569",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303609499",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2591",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "lineNumber": 14,
+          "columnNumber": 57
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "scriptId": "2570",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303609499",
+          "lineNumber": 243,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2569",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303609499",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2569",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303609499",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "2569",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303609499",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2587",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 8,
+          "columnNumber": 24
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2590",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 56,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "loadScriptsInSequence",
+          "scriptId": "2590",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 22,
+          "columnNumber": 15
+        },
+        {
+          "functionName": "appBootstrap",
+          "scriptId": "2590",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 55,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2587",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 7,
+          "columnNumber": 31
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "scriptId": "2570",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303609499",
+          "lineNumber": 265,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2569",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303609499",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2569",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303609499",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "__webpack_exec__",
+          "scriptId": "2570",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303609499",
+          "lineNumber": 1984,
+          "columnNumber": 60
+        },
+        {
+          "functionName": "",
+          "scriptId": "2570",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303609499",
+          "lineNumber": 1985,
+          "columnNumber": 153
+        },
+        {
+          "functionName": "webpackJsonpCallback",
+          "scriptId": "2569",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303609499",
+          "lineNumber": 1386,
+          "columnNumber": 38
+        },
+        {
+          "functionName": "",
+          "scriptId": "2570",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303609499",
+          "lineNumber": 8,
+          "columnNumber": 60
+        }
+      ]
+    }
+  },
+  {
+    "type": "info",
+    "args": [
+      {
+        "type": "string",
+        "value": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools"
+      },
+      {
+        "type": "string",
+        "value": "font-weight:bold"
+      }
+    ],
+    "executionContextId": 31,
+    "timestamp": 1792303615702.934,
+    "stackTrace": {
+      "callFrames": [
+        {
+          "functionName": "console.<computed>",
+          "scriptId": "3",
+          "url": "",
+          "lineNumber": 57,
+          "columnNumber": 29
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2864",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38559,
+          "columnNumber": 16
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2864",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38594,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "scriptId": "2827",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303614699",
+          "lineNumber": 1824,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2828",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303614699",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2828",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303614699",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "2828",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303614699",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2863",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "lineNumber": 31,
+          "columnNumber": 19
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "scriptId": "2827",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303614699",
+          "lineNumber": 1846,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2828",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303614699",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2828",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303614699",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "2828",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303614699",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2862",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "lineNumber": 2,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "scriptId": "2827",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303614699",
+          "lineNumber": 1835,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2828",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303614699",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2828",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303614699",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "2828",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303614699",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2854",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "lineNumber": 14,
+          "columnNumber": 57
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "scriptId": "2827",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303614699",
+          "lineNumber": 243,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2828",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303614699",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2828",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303614699",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "2828",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303614699",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2850",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 8,
+          "columnNumber": 24
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2853",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 56,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "loadScriptsInSequence",
+          "scriptId": "2853",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 22,
+          "columnNumber": 15
+        },
+        {
+          "functionName": "appBootstrap",
+          "scriptId": "2853",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 55,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "2850",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 7,
+          "columnNumber": 31
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "scriptId": "2827",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303614699",
+          "lineNumber": 265,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "2828",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303614699",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "2828",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303614699",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "__webpack_exec__",
+          "scriptId": "2827",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303614699",
+          "lineNumber": 1984,
+          "columnNumber": 60
+        },
+        {
+          "functionName": "",
+          "scriptId": "2827",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303614699",
+          "lineNumber": 1985,
+          "columnNumber": 153
+        },
+        {
+          "functionName": "webpackJsonpCallback",
+          "scriptId": "2828",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303614699",
+          "lineNumber": 1386,
+          "columnNumber": 38
+        },
+        {
+          "functionName": "",
+          "scriptId": "2827",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303614699",
+          "lineNumber": 8,
+          "columnNumber": 60
+        }
+      ]
+    }
+  },
+  {
+    "type": "info",
+    "args": [
+      {
+        "type": "string",
+        "value": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools"
+      },
+      {
+        "type": "string",
+        "value": "font-weight:bold"
+      }
+    ],
+    "executionContextId": 33,
+    "timestamp": 1792303618522.979,
+    "stackTrace": {
+      "callFrames": [
+        {
+          "functionName": "console.<computed>",
+          "scriptId": "3",
+          "url": "",
+          "lineNumber": 57,
+          "columnNumber": 29
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "3052",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38559,
+          "columnNumber": 16
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "3052",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38594,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "scriptId": "3027",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303617920",
+          "lineNumber": 1824,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "3026",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303617920",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "3026",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303617920",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "3026",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303617920",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "3051",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "lineNumber": 31,
+          "columnNumber": 19
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "scriptId": "3027",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303617920",
+          "lineNumber": 1846,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "3026",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303617920",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "3026",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303617920",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "3026",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303617920",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "3050",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "lineNumber": 2,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "scriptId": "3027",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303617920",
+          "lineNumber": 1835,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "3026",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303617920",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "3026",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303617920",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "3026",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303617920",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "3042",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "lineNumber": 14,
+          "columnNumber": 57
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "scriptId": "3027",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303617920",
+          "lineNumber": 243,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "3026",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303617920",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "3026",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303617920",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "3026",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303617920",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "3038",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 8,
+          "columnNumber": 24
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "3041",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 56,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "loadScriptsInSequence",
+          "scriptId": "3041",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 22,
+          "columnNumber": 15
+        },
+        {
+          "functionName": "appBootstrap",
+          "scriptId": "3041",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 55,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "3038",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 7,
+          "columnNumber": 31
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "scriptId": "3027",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303617920",
+          "lineNumber": 265,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "3026",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303617920",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "3026",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303617920",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "__webpack_exec__",
+          "scriptId": "3027",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303617920",
+          "lineNumber": 1984,
+          "columnNumber": 60
+        },
+        {
+          "functionName": "",
+          "scriptId": "3027",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303617920",
+          "lineNumber": 1985,
+          "columnNumber": 153
+        },
+        {
+          "functionName": "webpackJsonpCallback",
+          "scriptId": "3026",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303617920",
+          "lineNumber": 1386,
+          "columnNumber": 38
+        },
+        {
+          "functionName": "",
+          "scriptId": "3027",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303617920",
+          "lineNumber": 8,
+          "columnNumber": 60
+        }
+      ]
+    }
+  },
+  {
+    "type": "info",
+    "args": [
+      {
+        "type": "string",
+        "value": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools"
+      },
+      {
+        "type": "string",
+        "value": "font-weight:bold"
+      }
+    ],
+    "executionContextId": 36,
+    "timestamp": 1792303626333.767,
+    "stackTrace": {
+      "callFrames": [
+        {
+          "functionName": "console.<computed>",
+          "scriptId": "3",
+          "url": "",
+          "lineNumber": 57,
+          "columnNumber": 29
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "3242",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38559,
+          "columnNumber": 16
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "3242",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "lineNumber": 38594,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+          "scriptId": "3221",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303625741",
+          "lineNumber": 1824,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "3217",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303625741",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "3217",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303625741",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "3217",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303625741",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "3241",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "lineNumber": 31,
+          "columnNumber": 19
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/index.js",
+          "scriptId": "3221",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303625741",
+          "lineNumber": 1846,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "3217",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303625741",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "3217",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303625741",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "3217",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303625741",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "3240",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "lineNumber": 2,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/client.js",
+          "scriptId": "3221",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303625741",
+          "lineNumber": 1835,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "3217",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303625741",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "3217",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303625741",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "3217",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303625741",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "3232",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "lineNumber": 14,
+          "columnNumber": 57
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-index.js",
+          "scriptId": "3221",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303625741",
+          "lineNumber": 243,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "3217",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303625741",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "3217",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303625741",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "fn",
+          "scriptId": "3217",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303625741",
+          "lineNumber": 370,
+          "columnNumber": 20
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "3228",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 8,
+          "columnNumber": 24
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "3231",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 56,
+          "columnNumber": 8
+        },
+        {
+          "functionName": "loadScriptsInSequence",
+          "scriptId": "3231",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 22,
+          "columnNumber": 15
+        },
+        {
+          "functionName": "appBootstrap",
+          "scriptId": "3231",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-bootstrap.js",
+          "lineNumber": 55,
+          "columnNumber": 4
+        },
+        {
+          "functionName": "eval",
+          "scriptId": "3228",
+          "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "lineNumber": 7,
+          "columnNumber": 31
+        },
+        {
+          "functionName": "(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js",
+          "scriptId": "3221",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303625741",
+          "lineNumber": 265,
+          "columnNumber": 0
+        },
+        {
+          "functionName": "options.factory",
+          "scriptId": "3217",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303625741",
+          "lineNumber": 714,
+          "columnNumber": 30
+        },
+        {
+          "functionName": "__webpack_require__",
+          "scriptId": "3217",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303625741",
+          "lineNumber": 36,
+          "columnNumber": 32
+        },
+        {
+          "functionName": "__webpack_exec__",
+          "scriptId": "3221",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303625741",
+          "lineNumber": 1984,
+          "columnNumber": 60
+        },
+        {
+          "functionName": "",
+          "scriptId": "3221",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303625741",
+          "lineNumber": 1985,
+          "columnNumber": 153
+        },
+        {
+          "functionName": "webpackJsonpCallback",
+          "scriptId": "3217",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1792303625741",
+          "lineNumber": 1386,
+          "columnNumber": 38
+        },
+        {
+          "functionName": "",
+          "scriptId": "3221",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1792303625741",
+          "lineNumber": 8,
+          "columnNumber": 60
+        }
+      ]
+    }
+  }
+]

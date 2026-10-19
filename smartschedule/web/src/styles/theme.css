@@ -297,7 +297,7 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #4c607d; }
 .master-table-caption > div { display: grid; }
 .master-table-caption strong { color: var(--color-text); }
 .master-table-caption span { color: var(--color-text-muted); font-size: 12px; }
-.master-export-row { padding: 10px 18px; display: flex; justify-content: space-between; align-items: end; gap: 14px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
+.master-export-row { padding: 10px 18px; display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
 .master-export-row > div { display: flex; gap: 8px; flex-wrap: wrap; }
 .master-break-option { display: grid; gap: 5px; color: var(--color-text-secondary); font-size: 11px; font-weight: 700; }
 .master-break-option .form-input { min-width: 190px; min-height: 36px; padding: 6px 9px; }

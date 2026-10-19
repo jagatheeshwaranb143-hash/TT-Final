@@ -1,9 +1,11 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 
 export default function SubjectsPage() {
+  const searchParams = useSearchParams();
   const [subjects, setSubjects] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [facultyList, setFacultyList] = useState<any[]>([]);
@@ -66,17 +68,32 @@ export default function SubjectsPage() {
       setFacultyList(Array.isArray(facData) ? facData : []);
       setClasses(Array.isArray(classData) ? classData : []);
 
-      // Show the saved semester sections as soon as data loads. Requiring both
-      // filters first made a successful Both-semester setup look like it was
-      // missing from Curriculum & Subjects.
-      const firstLiteratureDepartment = depts.find((department: any) => (department.department_type || 'department') === 'department');
-      if (firstLiteratureDepartment && !selectedDeptFilter) {
-        setSelectedDepartmentType('department');
-        setSelectedDeptFilter(firstLiteratureDepartment.id);
+      // Check URL query parameters first, or fallback to first literature department
+      const queryDeptId = searchParams.get('department_id');
+      const queryDeptType = searchParams.get('department_type') as 'department' | 'lab' | null;
+      const querySemester = searchParams.get('semester');
+
+      if (queryDeptId && depts.some((d: any) => d.id === queryDeptId)) {
+        const foundDept = depts.find((d: any) => d.id === queryDeptId);
+        setSelectedDepartmentType(queryDeptType || ((foundDept?.department_type || 'department') as 'department' | 'lab'));
+        setSelectedDeptFilter(queryDeptId);
+      } else {
+        const firstLiteratureDepartment = depts.find((department: any) => (department.department_type || 'department') === 'department');
+        if (firstLiteratureDepartment && !selectedDeptFilter) {
+          setSelectedDepartmentType('department');
+          setSelectedDeptFilter(firstLiteratureDepartment.id);
+        }
+      }
+
+      if (querySemester) {
+        const semNum = parseInt(querySemester);
+        if (semNum >= 1 && semNum <= 8) {
+          setSelectedSemester(semNum);
+        }
       }
 
       if (depts.length > 0 && !formData.department_id) {
-        setFormData(prev => ({ ...prev, department_id: depts[0].id }));
+        setFormData(prev => ({ ...prev, department_id: queryDeptId || depts[0].id }));
       }
     } catch (e: any) {
       console.error(e);
@@ -114,7 +131,7 @@ export default function SubjectsPage() {
     setEditingSubjectId(null);
     setFormData({
       name: '', code: '', subject_type: '', weekly_periods: 3,
-      lab_block_size: 0, credits: 3, lab_mode: 'main',
+      lab_block_size: 3, credits: 3, lab_mode: 'main',
       department_id: activeDepartmentId, year_level: 0, semester: 0,
       class_id: '', faculty_id: '',
     });
@@ -126,26 +143,36 @@ export default function SubjectsPage() {
       return;
     }
     resetForm();
-    setFormData(current => ({ ...current, department_id: subjectDepartmentId, year_level: Math.ceil(selectedSemester / 2), semester: selectedSemester, class_id: selectedSectionClass?.id || '' }));
+    setFormData(current => ({
+      ...current,
+      department_id: subjectDepartmentId,
+      year_level: Math.ceil(selectedSemester / 2),
+      semester: selectedSemester,
+      class_id: selectedSectionClass?.id || 'all',
+      lab_mode: 'main',
+      lab_block_size: 3,
+    }));
     setShowModal(true);
   };
 
   const openEdit = (subject: any) => {
-    const assignedClass = classes.find(classItem => (classItem.subjects || []).some((item: any) => item.subject_id === subject.id));
-    const assignment = assignedClass?.subjects?.find((item: any) => item.subject_id === subject.id);
+    const targetClass = selectedSectionClass || classes.find(classItem => (classItem.subjects || []).some((item: any) => item.subject_id === subject.id));
+    const assignment = targetClass?.subjects?.find((item: any) => item.subject_id === subject.id);
+    const labMode = subject.lab_mode || 'main';
+    const blockSize = subject.type === 'lab' ? (subject.lab_block_size || (labMode === 'main' ? 3 : 2)) : 0;
     setEditingSubjectId(subject.id);
     setFormData({
       name: subject.name || '',
       code: subject.code || '',
       subject_type: subject.type === 'lab' ? 'lab' : 'theory',
       weekly_periods: assignment?.periods_per_week || subject.periods_per_week || 3,
-      lab_block_size: subject.lab_block_size || 2,
+      lab_block_size: blockSize,
       credits: subject.credits ?? 3,
-      lab_mode: subject.lab_mode || 'main',
+      lab_mode: labMode,
       department_id: subject.department_id || '',
-      year_level: subject.year || 1,
-      semester: subject.semester || 1,
-      class_id: 'all',
+      year_level: subject.year || Math.ceil(selectedSemester / 2),
+      semester: subject.semester || selectedSemester,
+      class_id: selectedSectionClass?.id || 'all',
       faculty_id: assignment?.faculty_id || '',
     });
     setShowModal(true);
@@ -204,40 +231,55 @@ export default function SubjectsPage() {
       }
 
       // Attach the subject to the selected class (or every matching class).
-      const matchingClasses = classes.filter(item =>
+      const allSemesterClasses = classes.filter(item =>
         item.department_id === formData.department_id &&
         item.year === formData.year_level &&
-        item.semester === formData.semester &&
-        (formData.class_id === 'all' || item.id === formData.class_id)
+        item.semester === formData.semester
       );
-      if (editingSubjectId) {
-        const matchingClassIds = new Set(matchingClasses.map(item => item.id));
-        for (const classItem of classes.filter(item =>
-          !matchingClassIds.has(item.id) &&
-          (item.subjects || []).some((subject: any) => subject.subject_id === savedSubject.id)
-        )) {
-          await api.classes.assignSubjects(classItem.id, (classItem.subjects || [])
-            .filter((subject: any) => subject.subject_id !== savedSubject.id)
-            .map((subject: any) => ({
-              subject_id: subject.subject_id,
-              faculty_id: subject.faculty_id || null,
-              periods_per_week: subject.periods_per_week ?? null,
-            })));
-        }
-      }
-      for (const classItem of matchingClasses) {
-        const existingAssignments = (classItem.subjects || []).map((subject: any) => ({
-          subject_id: subject.subject_id,
-          faculty_id: subject.faculty_id || null,
-          periods_per_week: subject.periods_per_week ?? null,
+      const classesToUpdate = formData.class_id === 'all'
+        ? allSemesterClasses
+        : allSemesterClasses.filter(item => item.id === formData.class_id);
+
+      for (const classItem of classesToUpdate) {
+        const existingAssignments = (classItem.subjects || []).map((s: any) => ({
+          subject_id: s.subject_id,
+          faculty_id: s.faculty_id || null,
+          periods_per_week: s.periods_per_week ?? null,
         }));
-        const hasSubject = existingAssignments.some((item: any) => item.subject_id === savedSubject.id);
-        const updatedAssignments = hasSubject
-          ? existingAssignments.map((item: any) => item.subject_id === savedSubject.id
-              ? { ...item, faculty_id: formData.faculty_id || null, periods_per_week: formData.weekly_periods }
-              : item)
-          : [...existingAssignments, { subject_id: savedSubject.id, faculty_id: formData.faculty_id || null, periods_per_week: formData.weekly_periods }];
-        await api.classes.assignSubjects(classItem.id, updatedAssignments);
+        const existingIdx = existingAssignments.findIndex((s: any) => s.subject_id === savedSubject.id);
+        if (existingIdx >= 0) {
+          existingAssignments[existingIdx] = {
+            subject_id: savedSubject.id,
+            faculty_id: formData.faculty_id || null,
+            periods_per_week: formData.weekly_periods,
+          };
+        } else {
+          existingAssignments.push({
+            subject_id: savedSubject.id,
+            faculty_id: formData.faculty_id || null,
+            periods_per_week: formData.weekly_periods,
+          });
+        }
+        await api.classes.assignSubjects(classItem.id, existingAssignments);
+      }
+
+      // Ensure other sections in the same semester also have the subject in their curriculum
+      for (const otherClass of allSemesterClasses) {
+        if (!classesToUpdate.some(c => c.id === otherClass.id)) {
+          const existing = (otherClass.subjects || []).map((s: any) => ({
+            subject_id: s.subject_id,
+            faculty_id: s.faculty_id || null,
+            periods_per_week: s.periods_per_week ?? null,
+          }));
+          if (!existing.some((s: any) => s.subject_id === savedSubject.id)) {
+            existing.push({
+              subject_id: savedSubject.id,
+              faculty_id: null,
+              periods_per_week: formData.weekly_periods,
+            });
+            await api.classes.assignSubjects(otherClass.id, existing);
+          }
+        }
       }
 
       toast.success(editingSubjectId ? 'Subject updated. Regenerate this semester cycle to apply it.' : 'Subject added successfully!');
@@ -292,17 +334,49 @@ export default function SubjectsPage() {
   const literatureDepartments = departments.filter(
     department => (department.department_type || 'department') === 'department',
   );
-  const facultyByDepartment = [...departments]
-    .sort((left, right) =>
-      (left.name || left.code || '').localeCompare(right.name || right.code || '', undefined, { sensitivity: 'base' }),
-    )
-    .map(department => ({
-      department,
-      faculty: facultyList
-        .filter(member => member.department_id === department.id)
-        .sort((left, right) => (left.name || '').localeCompare(right.name || '', undefined, { sensitivity: 'base' })),
-    }))
-    .filter(group => group.faculty.length > 0);
+  const prioritizedFacultyGroups = useMemo(() => {
+    const targetDeptId = formData.department_id || subjectDepartmentId;
+    const homeDept = departments.find(d => d.id === targetDeptId);
+    const groups: { department: any; label: string; faculty: any[]; isHome: boolean }[] = [];
+
+    // 1. TOP PRIORITY: Faculty belonging to the subject's selected department
+    if (homeDept) {
+      const homeFaculty = facultyList
+        .filter(member => member.department_id === homeDept.id)
+        .sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }));
+      if (homeFaculty.length > 0) {
+        groups.push({
+          department: homeDept,
+          label: `⭐ ${homeDept.name} (${homeDept.code}) — Home Department Faculty (Priority)`,
+          faculty: homeFaculty,
+          isHome: true,
+        });
+      }
+    }
+
+    // 2. OTHER DEPARTMENTS: Cross-department faculty
+    const otherDepts = departments
+      .filter(d => d.id !== targetDeptId)
+      .sort((a, b) => (a.name || a.code || '').localeCompare(b.name || b.code || '', undefined, { sensitivity: 'base' }));
+
+    for (const dept of otherDepts) {
+      const fac = facultyList
+        .filter(member => member.department_id === dept.id)
+        .sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }));
+      if (fac.length > 0) {
+        groups.push({
+          department: dept,
+          label: `${dept.name} (${dept.code}) — Cross-Department Faculty`,
+          faculty: fac,
+          isHome: false,
+        });
+      }
+    }
+
+    return groups;
+  }, [formData.department_id, subjectDepartmentId, departments, facultyList]);
+
+  const facultyByDepartment = prioritizedFacultyGroups;
   const facultyWithoutDepartment = facultyList
     .filter(member => !departments.some(department => department.id === member.department_id))
     .sort((left, right) => (left.name || '').localeCompare(right.name || '', undefined, { sensitivity: 'base' }));
@@ -466,16 +540,29 @@ export default function SubjectsPage() {
               {group.items.length === 0 ? <div style={{ padding: 22, color: '#64748b' }}>No {group.title.toLowerCase()} in Semester {selectedSemester}.</div> : (
                 <div style={{ overflowX: 'auto' }}><table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
                   <thead><tr style={{ color: '#64748b', fontSize: 12, textAlign: 'left', background: '#f8fafc' }}>
-                    <th style={{ padding: '10px 18px' }}>CODE</th><th>SUBJECT</th><th style={{ textAlign: 'center' }}>CREDIT</th><th>DEPARTMENT</th><th>YEAR</th><th style={{ textAlign: 'center' }}>PERIODS / WEEK</th><th style={{ textAlign: 'right', paddingRight: 18 }}>ACTION</th>
+                    <th style={{ padding: '10px 18px' }}>CODE</th><th>SUBJECT</th><th>FACULTY ({selectedSectionClass ? `SEC ${selectedSectionClass.section}` : 'ASSIGNED'})</th><th style={{ textAlign: 'center' }}>CREDIT</th><th>DEPARTMENT</th><th>YEAR</th><th style={{ textAlign: 'center' }}>PERIODS / WEEK</th><th style={{ textAlign: 'right', paddingRight: 18 }}>ACTION</th>
                   </tr></thead>
                   <tbody>{group.items.map((s: any) => {
                     const dept = departments.find(d => d.id === s.department_id);
+                    const sectionAssignment = (selectedSectionClass?.subjects || []).find((item: any) => item.subject_id === s.id);
+                    const facultyName = sectionAssignment?.faculty_name;
                     return <tr key={s.id} style={{ borderTop: '1px solid #eef2f7' }}>
                       <td style={{ padding: '14px 18px' }}><span style={{ fontWeight: 800, color: group.color, background: group.background, padding: '4px 8px', borderRadius: 6 }}>{s.code}</span></td>
-                      <td style={{ fontWeight: 700, color: '#0f172a' }}>{s.name}{s.type === 'lab' && s.lab_mode === 'integrated' && <small style={{ display: 'block', color: '#b45309', marginTop: 4 }}>Integrated lab</small>}</td>
+                      <td style={{ fontWeight: 700, color: '#0f172a' }}>{s.name}{s.type === 'lab' && s.lab_mode === 'integrated' && <small style={{ display: 'block', color: '#b45309', marginTop: 4 }}>Integrated lab (2 periods)</small>}</td>
+                      <td style={{ padding: '12px 14px' }}>
+                        {facultyName ? (
+                          <span style={{ fontWeight: 600, color: '#0f766e', background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '4px 8px', borderRadius: 6, display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: '0.8rem' }}>
+                            👤 {facultyName}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#b45309', background: '#fffbeb', border: '1px solid #fde68a', padding: '4px 8px', borderRadius: 6, fontSize: '0.78rem', fontWeight: 600 }}>
+                            ⚠️ Not assigned
+                          </span>
+                        )}
+                      </td>
                       <td style={{ color: '#475569', textAlign: 'center', fontWeight: 700 }}>{s.credits ?? 3}</td>
                       <td style={{ color: '#475569' }}>{dept?.code || '-'}</td><td style={{ color: '#475569' }}>Year {s.year || '-'}</td>
-                      <td style={{ color: '#475569', textAlign: 'center', fontWeight: 700 }}>{s.periods_per_week || 3}</td>
+                      <td style={{ color: '#475569', textAlign: 'center', fontWeight: 700 }}>{sectionAssignment?.periods_per_week || s.periods_per_week || 3}</td>
                       <td style={{ textAlign: 'right', paddingRight: 18 }}><div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}><button onClick={() => openEdit(s)} style={{ border: 0, background: 'transparent', color: '#2563eb', cursor: 'pointer', fontWeight: 700 }}>Edit</button><button onClick={() => handleDelete(s.id, s.name)} style={{ border: 0, background: 'transparent', color: '#dc2626', cursor: 'pointer', fontWeight: 700 }}>Delete</button></div></td>
                     </tr>;
                   })}</tbody>
@@ -536,22 +623,67 @@ export default function SubjectsPage() {
                 </div>
               </div>
 
+              {sectionClasses.length > 0 && (
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>
+                    Section Assignment (Year {formData.year_level || Math.ceil(selectedSemester / 2)} · Semester {formData.semester || selectedSemester})
+                  </label>
+                  <select
+                    value={formData.class_id}
+                    onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
+                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', color: '#334155', background: 'white' }}
+                    required
+                  >
+                    <option value="all">All Sections ({sectionClasses.map(c => `Section ${c.section}`).join(', ')})</option>
+                    {sectionClasses.map(c => (
+                      <option key={c.id} value={c.id}>Only Section {c.section}</option>
+                    ))}
+                  </select>
+                  <div style={{ color: '#64748b', fontSize: 12, marginTop: 4 }}>
+                    {formData.class_id === 'all'
+                      ? 'This course will be added to all sections. Each section can have its own assigned faculty.'
+                      : `Assigning faculty specifically for Section ${sectionClasses.find(c => c.id === formData.class_id)?.section || ''}.`}
+                  </div>
+                </div>
+              )}
+
               {formData.subject_type === 'lab' && (
                 <div style={{ marginBottom: '1rem' }}>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Laboratory type</label>
-                  <select value={formData.lab_mode} onChange={(e) => setFormData({ ...formData, lab_mode: e.target.value, lab_block_size: e.target.value === 'integrated' ? 2 : formData.lab_block_size })} style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: 8, marginBottom: 12 }}><option value="main">Main lab</option><option value="integrated">Integrated lab (2 consecutive periods)</option></select>
+                  <select
+                    value={formData.lab_mode}
+                    onChange={(e) => {
+                      const newMode = e.target.value;
+                      const autoBlockSize = newMode === 'main' ? 3 : 2;
+                      setFormData(prev => ({
+                        ...prev,
+                        lab_mode: newMode,
+                        lab_block_size: autoBlockSize,
+                        weekly_periods: autoBlockSize,
+                      }));
+                    }}
+                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: 8, marginBottom: 12 }}
+                  >
+                    <option value="main">Main lab (3 consecutive periods)</option>
+                    <option value="integrated">Integrated lab (2 consecutive periods)</option>
+                  </select>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Consecutive Lab Block</label>
                   <select
                     value={formData.lab_block_size}
-                    onChange={(e) => setFormData({ ...formData, lab_block_size: parseInt(e.target.value) || 2 })}
+                    onChange={(e) => {
+                      const size = parseInt(e.target.value) || 3;
+                      setFormData(prev => ({ ...prev, lab_block_size: size, weekly_periods: prev.weekly_periods % size === 0 ? prev.weekly_periods : size }));
+                    }}
                     style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', textAlign: 'center' }}
                     required
                   >
                     <option value={0} disabled hidden>Choose consecutive block</option>
+                    <option value={3} style={{ color: '#334155' }}>3 consecutive periods (Auto-selected for Main Lab)</option>
                     <option value={2} style={{ color: '#334155' }}>2 consecutive periods</option>
-                    {formData.lab_mode !== 'integrated' && <option value={3} style={{ color: '#334155' }}>3 consecutive periods</option>}
                   </select>
-                  <div style={{ color: '#64748b', fontSize: 12, marginTop: 5 }}>Periods/week must be divisible by this block size.</div>
+                  <div style={{ color: '#0f766e', fontSize: 12, marginTop: 5, fontWeight: 600 }}>
+                    {formData.lab_mode === 'main' ? '✓ Main lab automatically sets 3 consecutive periods.' : '✓ Integrated lab sets 2 consecutive periods.'}
+                  </div>
                 </div>
               )}
 
@@ -560,7 +692,18 @@ export default function SubjectsPage() {
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Course Type</label>
                   <select
                     value={formData.subject_type}
-                    onChange={(e) => setFormData({ ...formData, subject_type: e.target.value })}
+                    onChange={(e) => {
+                      const newType = e.target.value;
+                      const isLab = newType === 'lab';
+                      const blockSize = isLab ? (formData.lab_mode === 'integrated' ? 2 : 3) : 1;
+                      setFormData(prev => ({
+                        ...prev,
+                        subject_type: newType,
+                        lab_mode: isLab ? (prev.lab_mode || 'main') : prev.lab_mode,
+                        lab_block_size: blockSize,
+                        weekly_periods: isLab ? 3 : (prev.weekly_periods || 3),
+                      }));
+                    }}
                     style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', color: formData.subject_type ? '#334155' : '#94a3b8' }}
                     required
                   >
@@ -586,9 +729,16 @@ export default function SubjectsPage() {
               </div>
 
               <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>
-                  Assign Faculty Member (Required for generation)
-                </label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', flexWrap: 'wrap', gap: 6 }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155' }}>
+                    Assign Faculty Member (Required for generation)
+                  </label>
+                  {selectedSubjectDepartment && (
+                    <span style={{ fontSize: '0.75rem', color: '#0369a1', background: '#e0f2fe', padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>
+                      ⭐ Prioritizing {selectedSubjectDepartment.code} Faculty
+                    </span>
+                  )}
+                </div>
                 <select
                   value={formData.faculty_id}
                   onChange={(e) => setFormData({ ...formData, faculty_id: e.target.value })}
@@ -596,10 +746,12 @@ export default function SubjectsPage() {
                   required
                 >
                   <option value="" disabled hidden>Faculty: Choose faculty member</option>
-                  {facultyByDepartment.map(({ department, faculty }) => (
-                    <optgroup key={department.id} label={`${department.name} (${department.code})`} style={{ color: '#334155' }}>
-                      {faculty.map(member => (
-                        <option key={member.id} value={member.id} style={{ color: '#334155' }}>{member.name}</option>
+                  {prioritizedFacultyGroups.map((group, idx) => (
+                    <optgroup key={idx} label={group.label} style={{ color: group.isHome ? '#0369a1' : '#334155', fontWeight: group.isHome ? 700 : 600 }}>
+                      {group.faculty.map(member => (
+                        <option key={member.id} value={member.id} style={{ color: '#334155', fontWeight: group.isHome ? 600 : 400 }}>
+                          {group.isHome ? `⭐ ${member.name} (${group.department?.code || 'Home Dept'})` : `${member.name}`}
+                        </option>
                       ))}
                     </optgroup>
                   ))}
@@ -611,6 +763,9 @@ export default function SubjectsPage() {
                     </optgroup>
                   )}
                 </select>
+                <div style={{ marginTop: 4, fontSize: '0.78rem', color: '#64748b' }}>
+                  Faculty from {selectedSubjectDepartment?.name || 'the subject department'} are prioritized at the top. Cross-department faculty can be selected from groups below if needed.
+                </div>
               </div>
 
               {selectedFaculty && (

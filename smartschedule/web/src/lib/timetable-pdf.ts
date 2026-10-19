@@ -1,4 +1,4 @@
-﻿import { getBasicPreferences, getTimetablePreferences } from './preferences';
+import { getBasicPreferences, getTimetablePreferences } from './preferences';
 
 interface ExportOptions {
   title: string;
@@ -32,6 +32,7 @@ const escapeHtml = (value: unknown) => String(value ?? '')
 export function exportTimetablePdf({ title, subtitle, entries, periods, templateDetails, includeBreaks = false, facultyDetails }: ExportOptions) {
   const preferences = getTimetablePreferences();
   preferences.pdfTemplate = preferences.timetablePdfTemplate;
+  const orientation = preferences.timetableOrientation || 'horizontal';
   const popup = window.open('', '_blank', 'width=1200,height=800');
   if (!popup) throw new Error('Allow pop-ups to export the timetable as PDF');
   const allDays = [
@@ -63,21 +64,7 @@ export function exportTimetablePdf({ title, subtitle, entries, periods, template
     if (index + 1 === preferences.intervalAfterPeriod) cursor += preferences.intervalMinutes;
     if (index + 1 === preferences.lunchAfterPeriod) cursor += preferences.lunchMinutes;
   });
-  const timeRow = `<tr class="time-row"><th>TIME</th>${structureColumns.map(column => {
-    const number = Number(column.label.match(/\d+/)?.[0]) || structureColumns.filter(item => item.kind === 'period').indexOf(column) + 1;
-    return `<th class="${column.kind !== 'period' ? 'break-cell' : ''}">${column.kind === 'period' ? periodTimes.get(number) || '' : ''}</th>`;
-  }).join('')}</tr>`;
-  const rows = days.map(day => `<tr><th>${day.name.slice(0, 3).toUpperCase()}</th>${structureColumns.map(column => {
-    if (column.kind !== 'period') return `<td class="break-cell">${column.label}</td>`;
-    const periodNumber = Number(column.label.match(/\d+/)?.[0]) || structureColumns.filter(item => item.kind === 'period').indexOf(column) + 1;
-    const slotEntries = entries.filter(item => (item.day_of_week ?? item.day + 1) === day.number && (item.period_number ?? item.period) === periodNumber);
-    return `<td>${slotEntries.map(entry => `<div class="slot-entry"><strong>${escapeHtml(entry.subject_name || 'Subject')}</strong><span>${escapeHtml(entry.teacher_name || entry.faculty_name || 'Faculty not assigned')}</span></div>`).join('')}</td>`;
-  }).join('')}</tr>`).join('');
-  const subjectTable = templateDetails ? `<table class="subject-detail-table"><thead><tr><th>S.NO</th><th>SUB-CODE</th><th>SUBJECT</th><th>CREDIT</th><th>FACULTY NAME</th><th>DESIGNATION &amp; DEPT.</th><th>NO. HRS/WEEK</th></tr></thead><tbody>${(['theory', 'lab'] as const).map(kind => {
-    const subjects = templateDetails.subjects.filter(subject => (subject.subject_type === 'lab' ? 'lab' : 'theory') === kind);
-    return `<tr class="subject-group"><th colspan="7">${kind === 'lab' ? 'PRACTICALS' : 'THEORY'}</th></tr>${subjects.map((subject, index) => `<tr><td>${index + 1}</td><td>${escapeHtml(subject.subject_code)}</td><td>${escapeHtml(subject.subject_name)}</td><td>${escapeHtml(subject.credits ?? '-')}</td><td>${escapeHtml(subject.faculty_name || 'Not assigned')}</td><td>${escapeHtml(subject.faculty_department || templateDetails.departmentName || '-')}</td><td>${escapeHtml(subject.periods_per_week)}</td></tr>`).join('')}`;
-  }).join('')}</tbody></table><table class="coordinator-table"><tbody><tr><th>${escapeHtml(preferences.pdfStructure?.coordinatorLabels?.[0] || 'CLASS COORDINATOR')}</th><td>${escapeHtml(preferences.pdfStructure?.signatories?.classCoordinator || '')}</td><th>${escapeHtml(preferences.pdfStructure?.coordinatorLabels?.[1] || 'FACULTY ADVISOR')}</th><td>${escapeHtml(preferences.pdfStructure?.signatories?.facultyAdvisor || '')}</td></tr></tbody></table><table class="approval-table"><thead><tr>${(['timetableIncharge', 'overallTtCoordinator', 'hod', 'vicePrincipal', 'principal'] as const).map((key, index) => `<th>${escapeHtml(preferences.pdfStructure?.approvalLabels?.[index] || ['DEPT. TT COORDINATOR', 'OVERALL TT COORDINATOR', 'HOD', 'VICE-PRINCIPAL', 'PRINCIPAL'][index])}</th>`).join('')}</tr></thead><tbody><tr>${(['timetableIncharge', 'overallTtCoordinator', 'hod', 'vicePrincipal', 'principal'] as const).map(key => `<td>${escapeHtml(preferences.pdfStructure?.signatories?.[key] || (key === 'vicePrincipal' ? 'Dr.P.SUJATHA' : key === 'principal' ? getBasicPreferences().principalName || 'Dr.M.ARULKUMARAN' : ''))}</td>`).join('')}</tr></tbody></table>` : '';
-  const facultyHeader = facultyDetails ? `<section class="faculty-details"><strong>Faculty:</strong> ${escapeHtml(facultyDetails.name)} &nbsp; <strong>Department:</strong> ${escapeHtml(facultyDetails.departmentName)} &nbsp; <strong>Semester:</strong> ${escapeHtml(facultyDetails.semesterCycle)}<br/><strong>Assigned subjects:</strong> ${facultyDetails.subjects.map(subject => `${escapeHtml(subject.code)} (${escapeHtml(subject.name)})`).join(', ') || 'None'}</section>` : '';
+
   const accent = /^#[0-9a-f]{6}$/i.test(preferences.pdfAccent) ? preferences.pdfAccent : '#0f766e';
   const background = preferences.pdfStructure?.pdfDocument
     ? `<embed class="page-background pdf-document-background" src="${preferences.pdfStructure.pdfDocument}" type="application/pdf" />`
@@ -86,9 +73,51 @@ export function exportTimetablePdf({ title, subtitle, entries, periods, template
   const position = ['top', 'middle', 'bottom'].includes(preferences.pdfContentPosition) ? preferences.pdfContentPosition : 'middle';
   const justifyContent = position === 'top' ? 'flex-start' : position === 'bottom' ? 'flex-end' : 'center';
   const opacity = Math.max(.05, Math.min(1, preferences.pdfBackgroundOpacity));
-  popup.document.write(`<!doctype html><html><head><title>${escapeHtml(title)}</title><style>@page{size:A4 landscape;margin:10mm}*{box-sizing:border-box}html,body{min-height:190mm}body{position:relative;font-family:Arial,sans-serif;color:#0f172a;margin:0}.page-background{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;opacity:${opacity};z-index:-1}.page-content{min-height:190mm;display:flex;flex-direction:column;justify-content:${justifyContent}}h1{text-align:center;margin:0 0 5px;font-size:22px}p{text-align:center;white-space:pre-line;color:#475569;margin:0 0 16px}.faculty-details{margin:0 0 10px;padding:9px 12px;border:1px solid #cbd5e1;border-radius:6px;line-height:1.8;font-size:10px}.faculty-details strong{display:inline}table{width:100%;border-collapse:collapse;table-layout:fixed;background:rgba(255,255,255,.9);break-inside:auto}tr{break-inside:avoid;page-break-inside:avoid}th,td{border:1px solid #64748b;padding:7px 4px;text-align:center;min-height:48px;vertical-align:middle;font-size:9px;overflow-wrap:anywhere}thead th{background:${accent};color:white;height:auto}tbody th{background:rgba(241,245,249,.96);width:8%}.slot-entry{break-inside:avoid;margin:2px 0;padding:4px;background:#fff;border-radius:4px}strong,span,small{display:block}span{margin-top:3px;color:#475569;font-size:9px}small{margin-top:3px;font-weight:normal}.break-cell{width:3%;padding:3px 1px;color:#475569;background:#e2e8f0;font-size:7px;font-weight:bold;writing-mode:vertical-rl}.pdf-signatories{display:flex;justify-content:space-between;gap:18px;margin-top:30px;break-inside:avoid}.pdf-signatories div{min-width:25%;padding-top:24px;border-top:1px solid #64748b;text-align:center}.pdf-signatories strong,.pdf-signatories span{display:block}.pdf-signatories span{margin-top:4px}footer{text-align:center;margin-top:10px;color:#64748b;font-size:9px}.subject-detail-table,.coordinator-table,.approval-table{margin-top:12px;break-inside:auto}.subject-detail-table th,.subject-detail-table td,.coordinator-table th,.coordinator-table td,.approval-table th,.approval-table td{font-size:8px;padding:5px}.subject-group th{background:#e2e8f0;color:#0f172a;text-align:left}.coordinator-table th,.approval-table th{background:#eaf0f7}${templateCss}</style></head><body>${background}<main class="page-content"><h1>${escapeHtml(title)}</h1><p>${escapeHtml(subtitle || '')}</p>${facultyHeader}<table><thead><tr><th>DAY</th>${structureColumns.map(column => `<th class="${column.kind !== 'period' ? 'break-cell' : ''}">${escapeHtml(column.label)}</th>`).join('')}</tr>${timeRow}</thead><tbody>${rows}</tbody></table>${subjectTable}<footer>${escapeHtml(preferences.pdfFooter)}</footer></main><script>window.onload=()=>{window.print()}<\/script></body></html>`);
+  const facultyHeader = facultyDetails ? `<section class="faculty-details"><strong>Faculty:</strong> ${escapeHtml(facultyDetails.name)} &nbsp; <strong>Department:</strong> ${escapeHtml(facultyDetails.departmentName)} &nbsp; <strong>Semester:</strong> ${escapeHtml(facultyDetails.semesterCycle)}<br/><strong>Assigned subjects:</strong> ${facultyDetails.subjects.map(subject => `${escapeHtml(subject.code)} (${escapeHtml(subject.name)})`).join(', ') || 'None'}</section>` : '';
+  const subjectTable = templateDetails ? `<table class="subject-detail-table"><thead><tr><th>S.NO</th><th>SUB-CODE</th><th>SUBJECT</th><th>CREDIT</th><th>FACULTY NAME</th><th>DESIGNATION &amp; DEPT.</th><th>NO. HRS/WEEK</th></tr></thead><tbody>${(['theory', 'lab'] as const).map(kind => {
+    const subjects = templateDetails.subjects.filter(subject => (subject.subject_type === 'lab' ? 'lab' : 'theory') === kind);
+    return `<tr class="subject-group"><th colspan="7">${kind === 'lab' ? 'PRACTICALS' : 'THEORY'}</th></tr>${subjects.map((subject, index) => `<tr><td>${index + 1}</td><td>${escapeHtml(subject.subject_code)}</td><td>${escapeHtml(subject.subject_name)}</td><td>${escapeHtml(subject.credits ?? '-')}</td><td>${escapeHtml(subject.faculty_name || 'Not assigned')}</td><td>${escapeHtml(subject.faculty_department || templateDetails.departmentName || '-')}</td><td>${escapeHtml(subject.periods_per_week)}</td></tr>`).join('')}`;
+  }).join('')}</tbody></table><table class="coordinator-table"><tbody><tr><th>${escapeHtml(preferences.pdfStructure?.coordinatorLabels?.[0] || 'CLASS COORDINATOR')}</th><td>${escapeHtml(preferences.pdfStructure?.signatories?.classCoordinator || '')}</td><th>${escapeHtml(preferences.pdfStructure?.coordinatorLabels?.[1] || 'FACULTY ADVISOR')}</th><td>${escapeHtml(preferences.pdfStructure?.signatories?.facultyAdvisor || '')}</td></tr></tbody></table><table class="approval-table"><thead><tr>${(['timetableIncharge', 'overallTtCoordinator', 'hod', 'vicePrincipal', 'principal'] as const).map((key, index) => `<th>${escapeHtml(preferences.pdfStructure?.approvalLabels?.[index] || ['DEPT. TT COORDINATOR', 'OVERALL TT COORDINATOR', 'HOD', 'VICE-PRINCIPAL', 'PRINCIPAL'][index])}</th>`).join('')}</tr></thead><tbody><tr>${(['timetableIncharge', 'overallTtCoordinator', 'hod', 'vicePrincipal', 'principal'] as const).map(key => `<td>${escapeHtml(preferences.pdfStructure?.signatories?.[key] || (key === 'vicePrincipal' ? 'Dr.P.SUJATHA' : key === 'principal' ? getBasicPreferences().principalName || 'Dr.M.ARULKUMARAN' : ''))}</td>`).join('')}</tr></tbody></table>` : '';
+
+  // ── Build table HTML based on orientation ─────────────────────────────────
+  let tableHtml: string;
+
+  if (orientation === 'vertical') {
+    // Vertical: rows = days, columns = periods
+    const periodHeaderRow = `<tr><th>DAY \\ PERIOD</th>${structureColumns.map(column => {
+      const number = Number(column.label.match(/\d+/)?.[0]) || structureColumns.filter(item => item.kind === 'period').indexOf(column) + 1;
+      return `<th class="${column.kind !== 'period' ? 'break-cell' : ''}">${escapeHtml(column.label)}</th>`;
+    }).join('')}</tr>`;
+    const timeHeaderRow = `<tr class="time-row"><th>Time</th>${structureColumns.map(column => {
+      const number = Number(column.label.match(/\d+/)?.[0]) || structureColumns.filter(item => item.kind === 'period').indexOf(column) + 1;
+      return `<th class="${column.kind !== 'period' ? 'break-cell' : ''}">${column.kind === 'period' ? periodTimes.get(number) || '' : ''}</th>`;
+    }).join('')}</tr>`;
+    const dayRows = days.map(day => `<tr><th>${day.name}</th>${structureColumns.map(column => {
+      if (column.kind !== 'period') return `<td class="break-cell">${column.label}</td>`;
+      const periodNumber = Number(column.label.match(/\d+/)?.[0]) || structureColumns.filter(item => item.kind === 'period').indexOf(column) + 1;
+      const slotEntries = entries.filter(item => (item.day_of_week ?? item.day + 1) === day.number && (item.period_number ?? item.period) === periodNumber);
+      return `<td>${slotEntries.map(entry => `<div class="slot-entry"><strong>${escapeHtml(entry.subject_name || 'Subject')}</strong><span>${escapeHtml(entry.teacher_name || entry.faculty_name || 'Faculty not assigned')}</span></div>`).join('')}</td>`;
+    }).join('')}</tr>`).join('');
+    tableHtml = `<table><thead>${periodHeaderRow}${timeHeaderRow}</thead><tbody>${dayRows}</tbody></table>`;
+  } else {
+    // Horizontal: rows = periods, columns = days (original layout)
+    const timeRow = `<tr class="time-row"><th>TIME</th>${structureColumns.map(column => {
+      const number = Number(column.label.match(/\d+/)?.[0]) || structureColumns.filter(item => item.kind === 'period').indexOf(column) + 1;
+      return `<th class="${column.kind !== 'period' ? 'break-cell' : ''}">${column.kind === 'period' ? periodTimes.get(number) || '' : ''}</th>`;
+    }).join('')}</tr>`;
+    const rows = days.map(day => `<tr><th>${day.name.slice(0, 3).toUpperCase()}</th>${structureColumns.map(column => {
+      if (column.kind !== 'period') return `<td class="break-cell">${column.label}</td>`;
+      const periodNumber = Number(column.label.match(/\d+/)?.[0]) || structureColumns.filter(item => item.kind === 'period').indexOf(column) + 1;
+      const slotEntries = entries.filter(item => (item.day_of_week ?? item.day + 1) === day.number && (item.period_number ?? item.period) === periodNumber);
+      return `<td>${slotEntries.map(entry => `<div class="slot-entry"><strong>${escapeHtml(entry.subject_name || 'Subject')}</strong><span>${escapeHtml(entry.teacher_name || entry.faculty_name || 'Faculty not assigned')}</span></div>`).join('')}</td>`;
+    }).join('')}</tr>`).join('');
+    tableHtml = `<table><thead><tr><th>DAY</th>${structureColumns.map(column => `<th class="${column.kind !== 'period' ? 'break-cell' : ''}">${escapeHtml(column.label)}</th>`).join('')}</tr>${timeRow}</thead><tbody>${rows}</tbody></table>`;
+  }
+
+  popup.document.write(`<!doctype html><html><head><title>${escapeHtml(title)}</title><style>@page{size:A4 landscape;margin:10mm}*{box-sizing:border-box}html,body{min-height:190mm}body{position:relative;font-family:Arial,sans-serif;color:#0f172a;margin:0}.page-background{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;opacity:${opacity};z-index:-1}.page-content{min-height:190mm;display:flex;flex-direction:column;justify-content:${justifyContent}}h1{text-align:center;margin:0 0 5px;font-size:22px}p{text-align:center;white-space:pre-line;color:#475569;margin:0 0 16px}.faculty-details{margin:0 0 10px;padding:9px 12px;border:1px solid #cbd5e1;border-radius:6px;line-height:1.8;font-size:10px}.faculty-details strong{display:inline}table{width:100%;border-collapse:collapse;table-layout:fixed;background:rgba(255,255,255,.9);break-inside:auto}tr{break-inside:avoid;page-break-inside:avoid}th,td{border:1px solid #64748b;padding:7px 4px;text-align:center;min-height:48px;vertical-align:middle;font-size:9px;overflow-wrap:anywhere}thead th{background:${accent};color:white;height:auto}tbody th{background:rgba(241,245,249,.96);width:8%}.slot-entry{break-inside:avoid;margin:2px 0;padding:4px;background:#fff;border-radius:4px}strong,span,small{display:block}span{margin-top:3px;color:#475569;font-size:9px}small{margin-top:3px;font-weight:normal}.break-cell{width:3%;padding:3px 1px;color:#475569;background:#e2e8f0;font-size:7px;font-weight:bold;writing-mode:vertical-rl}.time-row th{font-size:7.5px;font-weight:500;color:rgba(255,255,255,0.85)}.pdf-signatories{display:flex;justify-content:space-between;gap:18px;margin-top:30px;break-inside:avoid}.pdf-signatories div{min-width:25%;padding-top:24px;border-top:1px solid #64748b;text-align:center}.pdf-signatories strong,.pdf-signatories span{display:block}.pdf-signatories span{margin-top:4px}footer{text-align:center;margin-top:10px;color:#64748b;font-size:9px}.subject-detail-table,.coordinator-table,.approval-table{margin-top:12px;break-inside:auto}.subject-detail-table th,.subject-detail-table td,.coordinator-table th,.coordinator-table td,.approval-table th,.approval-table td{font-size:8px;padding:5px}.subject-group th{background:#e2e8f0;color:#0f172a;text-align:left}.coordinator-table th,.approval-table th{background:#eaf0f7}${templateCss}</style></head><body>${background}<main class="page-content"><h1>${escapeHtml(title)}</h1><p>${escapeHtml(subtitle || '')}</p>${facultyHeader}${tableHtml}${subjectTable}<footer>${escapeHtml(preferences.pdfFooter)}</footer></main><script>window.onload=()=>{window.print()}<\/script></body></html>`);
   popup.document.close();
 }
+
 export function exportMasterDayPdf({ title, subtitle, dayName, classes, entries, periods, includeBreaks = false }: MasterDayExportOptions) {
   const preferences = getTimetablePreferences();
   preferences.pdfTemplate = preferences.masterPdfTemplate;

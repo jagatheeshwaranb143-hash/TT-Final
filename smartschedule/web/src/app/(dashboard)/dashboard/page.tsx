@@ -1,6 +1,7 @@
-'use client';
+﻿'use client';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { LoaderCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
 export default function DashboardRedirect() {
@@ -23,10 +24,11 @@ export default function DashboardRedirect() {
   }, [user, isLoading, router]);
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⚡</div>
-        <p style={{ color: '#64748b' }}>Redirecting to your dashboard...</p>
+    <div className="app-loading" role="status" aria-live="polite" aria-atomic="true">
+      <LoaderCircle className="session-spinner" size={28} aria-hidden="true" />
+      <div className="loading-copy">
+        <strong>Redirecting to your dashboard</strong>
+        <span>Checking your role and permissions&hellip;</span>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 'use client';
 
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
-import { BookOpen, CalendarDays, Camera, Download, ImageOff, Plus, Search, Trash2, UserRound, Users, X } from 'lucide-react';
+import { Activity, BookOpen, CalendarDays, Camera, Clock, Download, ImageOff, Layers, Plus, Search, Trash2, UserRound, Users, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
@@ -74,6 +74,14 @@ export default function FacultyPage() {
   const addFormDepartments = departments;
   const directoryDepartments = departments.filter(item => (item.department_type || 'department') !== 'lab');
   const gridEntries = entries.map(entry => ({ ...entry, day_of_week: entry.day + 1, period_number: entry.period, teacher_name: entry.faculty_name, room_name: entry.class_label }));
+  const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+  const dayCounts = [0, 1, 2, 3, 4].map(d => ({
+    day: DAYS[d],
+    count: entries.filter((e: any) => e.day === d).length,
+  }));
+  const uniqueClasses = Array.from(new Set(entries.map((e: any) => e.class_label).filter(Boolean)));
+  const maxDayLoad = Math.max(0, ...dayCounts.map(d => d.count));
+  const workloadLevel = entries.length === 0 ? 'unassigned' : entries.length > 18 ? 'heavy' : entries.length >= 10 ? 'balanced' : 'light';
 
   const createFaculty = async (event: FormEvent) => {
     event.preventDefault();
@@ -206,7 +214,35 @@ export default function FacultyPage() {
               <div className="faculty-metrics">
                 <div><CalendarDays size={18} /><span>Weekly periods</span><strong>{entries.length}</strong></div>
                 <div><BookOpen size={18} /><span>Assigned subjects</span><strong>{cycleSubjects.length}</strong></div>
+                <div><Layers size={18} /><span>Classes assigned</span><strong>{uniqueClasses.length}</strong></div>
+                <div><Clock size={18} /><span>Peak daily load</span><strong>{maxDayLoad} hrs</strong></div>
               </div>
+
+              {entries.length > 0 && (
+                <div className="faculty-workload-breakdown">
+                  <div className="workload-summary-title">
+                    <Activity size={14} />
+                    <span>Daily distribution ({semesterCycle} cycle)</span>
+                    <span className={`workload-tag ${workloadLevel}`}>
+                      {workloadLevel === 'unassigned' ? 'Unassigned' : workloadLevel === 'heavy' ? 'Intensive Load' : workloadLevel === 'balanced' ? 'Balanced Load' : 'Light Load'}
+                    </span>
+                  </div>
+                  <div className="workload-day-bars">
+                    {dayCounts.map(d => (
+                      <div key={d.day} className="workload-day-col">
+                        <div className="workload-bar-wrap">
+                          <div
+                            className="workload-bar-fill"
+                            style={{ height: `${Math.max(8, Math.min(100, (d.count / 7) * 100))}%` }}
+                          />
+                        </div>
+                        <span className="workload-day-label">{d.day}</span>
+                        <span className="workload-day-val">{d.count}p</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {!!cycleSubjects.length && <div className="subject-strip" aria-label={`${semesterCycle} semester assigned subjects`}>{cycleSubjects.map((subject: any) => <span key={subject.id}>{subject.code}<small>{subject.name}</small></span>)}</div>}
 

@@ -22,6 +22,7 @@ export interface BasicPreferences {
   timeFormat: TimeFormat;
   theme: ColorTheme;
 }
+export type TimetableOrientation = 'horizontal' | 'vertical';
 export interface TimetablePreferences {
   workingDays: number[]; periodsPerDay: number; dayStart: string; periodMinutes: number; lunchAfterPeriod: number;
   intervalAfterPeriod: number; intervalMinutes: number; lunchMinutes: number; weeklyPeriodTarget: number;
@@ -30,6 +31,7 @@ export interface TimetablePreferences {
   timetablePdfTemplate: 'classic' | 'modern' | 'minimal'; masterPdfTemplate: 'classic' | 'modern' | 'minimal';
   pdfStructure: PdfStructure | null;
   pdfBackgroundImage: string; pdfBackgroundOpacity: number; pdfContentPosition: 'top' | 'middle' | 'bottom';
+  timetableOrientation: TimetableOrientation;
 }
 
 const SEMESTER_CYCLE_KEY = 'smartschedule.defaultSemesterCycle';
@@ -57,6 +59,7 @@ const timetableDefaults: TimetablePreferences = {
   timetablePdfTemplate: 'modern', masterPdfTemplate: 'modern',
   pdfStructure: null,
   pdfBackgroundImage: '', pdfBackgroundOpacity: 0.12, pdfContentPosition: 'middle',
+  timetableOrientation: 'horizontal',
 };
 
 function mergeKnown<T extends object>(defaults: T, saved: Record<string, unknown>): T {

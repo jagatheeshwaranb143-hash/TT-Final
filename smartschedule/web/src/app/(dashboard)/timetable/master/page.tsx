@@ -1,11 +1,12 @@
 'use client';
 
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { CalendarDays, FileDown, Table2 } from 'lucide-react';
+import { CalendarDays, FileDown, Sheet, Table2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '@/lib/api';
 import { getDefaultSemesterCycle, getTimetablePreferences } from '@/lib/preferences';
 import { exportMasterAllDaysPdf, exportMasterDayPdf } from '@/lib/timetable-pdf';
+import { exportMasterAllDaysExcel, exportMasterDayExcel } from '@/lib/timetable-excel';
 
 const weekdays = [
   { apiDay: 0, label: 'Monday', short: 'Mon' },
@@ -130,6 +131,34 @@ export default function MasterTimetablePage() {
       toast.error(error instanceof Error ? error.message : 'Unable to export all timetables');
     }
   };
+  const exportSelectedDayExcel = async () => {
+    try {
+      await exportMasterDayExcel({
+        title: `${selectedDepartment?.name || 'Department'} Master Timetable`,
+        subtitle: `${semesterType === 'odd' ? 'Odd' : 'Even'} semesters`,
+        dayName: weekdays[selectedDay].label,
+        classes: visibleClasses.map(item => ({ id: item.id, label: classLabel(item) })),
+        entries: visibleEntries,
+        periods,
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to export to Excel');
+    }
+  };
+  const exportAllDaysExcel = async () => {
+    try {
+      await exportMasterAllDaysExcel({
+        title: `${selectedDepartment?.name || 'Department'} Master Timetable`,
+        subtitle: `${semesterType === 'odd' ? 'Odd' : 'Even'} semesters`,
+        days: weekdays,
+        classes: visibleClasses.map(item => ({ id: item.id, label: classLabel(item) })),
+        entries: allVisibleEntries,
+        periods,
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to export all days to Excel');
+    }
+  };
 
   return (
     <div className="master-page">
@@ -185,7 +214,7 @@ export default function MasterTimetablePage() {
       ) : (
         <section className="card master-table-card" aria-label={`${selectedDepartment?.name || 'Department'} ${weekdays[selectedDay].label} master timetable`}>
           <div className="master-table-caption"><div><strong>{selectedDepartment?.name}</strong><span>{semesterType === 'odd' ? 'Odd' : 'Even'} semesters · {weekdays[selectedDay].label}</span></div><span>{visibleClasses.length} classes</span></div>
-        <div className="master-export-row"><label className="master-break-option"><span>Timetable breaks</span><select className="form-input" value={includeBreaks ? 'with-breaks' : 'periods-only'} onChange={event => setIncludeBreaks(event.target.value === 'with-breaks')}><option value="periods-only">Periods only</option><option value="with-breaks">Show configured breaks (incl. after Period 6)</option></select></label><div><button type="button" className="btn btn-secondary master-export" onClick={exportSelectedDay}><FileDown size={16} />Export master timetable: {weekdays[selectedDay].label}</button><button type="button" className="btn btn-primary master-export" onClick={exportAllDays}><FileDown size={16} />Export master timetable: all days</button></div></div>
+        <div className="master-export-row"><label className="master-break-option"><span>Timetable breaks</span><select className="form-input" value={includeBreaks ? 'with-breaks' : 'periods-only'} onChange={event => setIncludeBreaks(event.target.value === 'with-breaks')}><option value="periods-only">Periods only</option><option value="with-breaks">Show configured breaks (incl. after Period 6)</option></select></label><div><button type="button" className="btn btn-secondary master-export" onClick={exportSelectedDayExcel}><Sheet size={16} />Excel: {weekdays[selectedDay].label}</button><button type="button" className="btn btn-secondary master-export" onClick={exportAllDaysExcel}><Sheet size={16} />Excel: All days</button><button type="button" className="btn btn-secondary master-export" onClick={exportSelectedDay}><FileDown size={16} />PDF: {weekdays[selectedDay].label}</button><button type="button" className="btn btn-primary master-export" onClick={exportAllDays}><FileDown size={16} />PDF: All days</button></div></div>
           <div className="master-table-scroll">
             <table className="master-table">
               <thead><tr><th>Class</th>{periods.map(period => <Fragment key={period.number}><th><strong>{period.label}</strong><span>{period.time}</span></th>{includeBreaks && breakAfter[period.number] && period.number < periods.length && <th className="master-break-column">{breakAfter[period.number]}</th>}</Fragment>)}</tr></thead>

@@ -1,0 +1,202 @@
+[
+  {
+    "id": "TC-001",
+    "page": "Splash / Root",
+    "control": "Application Initialization & Splash Screen",
+    "expected": "Displays SX branding mark, animated spinner, and initiates session verification",
+    "actual": "Splash screen rendered with pulsing SX logo, subtitle, and spinning loader before route resolution",
+    "status": "PASS",
+    "screenshotId": "SS-001",
+    "recommendation": ""
+  },
+  {
+    "id": "TC-002",
+    "page": "Login Page",
+    "control": "Sign In Form & Branding Presentation",
+    "expected": "Renders email input, password input, show/hide toggle, Sign in button, and institution hero banner",
+    "actual": "Full authentication layout rendered with teal institution theme and demo credential hints",
+    "status": "PASS",
+    "screenshotId": "SS-002",
+    "recommendation": ""
+  },
+  {
+    "id": "TC-003",
+    "page": "Login Page",
+    "control": "Credential Validation & Rejection Notification",
+    "expected": "Rejects invalid credentials and displays descriptive inline alert notification",
+    "actual": "Error feedback displayed correctly: \"Invalid email or password\"",
+    "status": "PASS",
+    "screenshotId": "SS-003",
+    "recommendation": ""
+  },
+  {
+    "id": "TC-004",
+    "page": "Principal Dashboard",
+    "control": "Executive Overview & Live Metrics",
+    "expected": "Displays institution overview, scheduled periods counter, live schedule status, and quick navigation cards",
+    "actual": "Principal dashboard rendered with hero banner, 0 scheduled periods counter, and department/faculty cards",
+    "status": "PASS",
+    "screenshotId": "SS-004",
+    "recommendation": ""
+  },
+  {
+    "id": "TC-005",
+    "page": "HOD Dashboard",
+    "control": "Department Hub & Generate Timetable Action",
+    "expected": "Displays department dashboard, faculty shortcuts, and active Generate Timetable button",
+    "actual": "HOD dashboard active with Generate Timetable button verified: true",
+    "status": "PASS",
+    "screenshotId": "SS-005",
+    "recommendation": ""
+  },
+  {
+    "id": "TC-006",
+    "page": "Student Dashboard",
+    "control": "Student Timetable Viewer & Day Schedule",
+    "expected": "Displays student class selector, daily schedule view, subject codes, faculty details, and lunch breaks",
+    "actual": "Student timetable viewer loaded with department/class selectors and timetable view mode",
+    "status": "PASS",
+    "screenshotId": "SS-006",
+    "recommendation": ""
+  },
+  {
+    "id": "TC-007",
+    "page": "Departments",
+    "control": "Department Inventory & Add Dialog",
+    "expected": "Lists active departments with code badges, student intake counters, and creation action controls",
+    "actual": "Department inventory rendered with 1 visible elements and search filter",
+    "status": "PASS",
+    "screenshotId": "SS-007",
+    "recommendation": ""
+  },
+  {
+    "id": "TC-008",
+    "page": "Faculty",
+    "control": "Faculty Directory & Workload Monitor",
+    "expected": "Displays faculty members with department tags, workload hours, designation, and search filters",
+    "actual": "Faculty directory loaded with 0 visible elements and workload hours overview",
+    "status": "PASS",
+    "screenshotId": "SS-008",
+    "recommendation": ""
+  },
+  {
+    "id": "TC-009",
+    "page": "Classes",
+    "control": "Class & Section Management",
+    "expected": "Presents classes categorized by Year 1-4, Semester 1-8, and Section (A, B, C...) with student intake",
+    "actual": "Class directory rendered with Year badges, Section labels, and paired semester controls",
+    "status": "PASS",
+    "screenshotId": "SS-009",
+    "recommendation": ""
+  },
+  {
+    "id": "TC-010",
+    "page": "Curriculum & Subjects",
+    "control": "Cascading Filter & Section Tabs",
+    "expected": "Dept Type -> Dept -> Sem 1-8 cascading filter with Section tabs and Faculty priority star badges",
+    "actual": "Curriculum page rendered with working filters, Section tabs (A, B...), and home department faculty prioritization",
+    "status": "PASS",
+    "screenshotId": "SS-010",
+    "recommendation": ""
+  },
+  {
+    "id": "TC-011",
+    "page": "Timetable Generator",
+    "control": "CP-SAT Solver Interface & Prerequisites",
+    "expected": "Presents department selection, odd/even cycle selector, constraint prerequisite checks, and solver trigger",
+    "actual": "Timetable generator loaded with constraint validation checklist and conflict prevention flags",
+    "status": "PASS",
+    "screenshotId": "SS-011",
+    "recommendation": ""
+  },
+  {
+    "id": "TC-012",
+    "page": "Class Timetable",
+    "control": "Year & Section Filter / Grid View",
+    "expected": "Presents Year 1-4 selection, Section selector, and weekly schedule matrix with theory/lab periods",
+    "actual": "Weekly timetable grid rendered with subject names, teacher assignments, and period slots",
+    "status": "PASS",
+    "screenshotId": "SS-012",
+    "recommendation": ""
+  },
+  {
+    "id": "TC-013",
+    "page": "Class Timetable",
+    "control": "Institutional Template & Signatories",
+    "expected": "Renders institutional header, detailed subject/faculty credit matrix, coordinator notes, and approval signature blocks",
+    "actual": "Official college template view rendered with S.NO, Sub-Code, Credits, HOD, and Principal signatories",
+    "status": "PASS",
+    "screenshotId": "SS-013",
+    "recommendation": ""
+  },
+  {
+    "id": "TC-014",
+    "page": "Master Timetable",
+    "control": "Multi-Class Department Schedule Grid",
+    "expected": "Renders synchronized multi-class grid across all periods with export actions",
+    "actual": "Master timetable matrix displayed with class-by-class allocation across weekdays",
+    "status": "PASS",
+    "screenshotId": "SS-014",
+    "recommendation": ""
+  },
+  {
+    "id": "TC-015",
+    "page": "Settings",
+    "control": "Timetable Periods & Working Hours Configuration",
+    "expected": "Configures period duration, day start time, intervals, lunch periods, and working days",
+    "actual": "Settings forms loaded with pre-configured period slots, breaks, and institution preferences",
+    "status": "PASS",
+    "screenshotId": "SS-015",
+    "recommendation": ""
+  },
+  {
+    "id": "TC-016",
+    "page": "Settings",
+    "control": "Semester Cycle & Curriculum Navigation",
+    "expected": "Odd/Even semester cycle configuration with direct navigation link to Curriculum & Subjects",
+    "actual": "Semester cycle options displayed with working navigation link to curriculum setup",
+    "status": "PASS",
+    "screenshotId": "SS-016",
+    "recommendation": ""
+  },
+  {
+    "id": "TC-017",
+    "page": "About",
+    "control": "System Architecture & Credits",
+    "expected": "Presents SEC SchedX architecture, Sudharsan Engineering College AI & DS details, and technical stack",
+    "actual": "About page rendered with project mission, algorithm details, and institutional attribution",
+    "status": "PASS",
+    "screenshotId": "SS-017",
+    "recommendation": ""
+  },
+  {
+    "id": "TC-018",
+    "page": "PDF Export",
+    "control": "Export Options & Breaks Toggle",
+    "expected": "Provides \"Breaks in PDF\" checkbox and \"Export timetable PDF\" trigger button",
+    "actual": "Export timetable PDF action button and breaks inclusion toggle verified",
+    "status": "PASS",
+    "screenshotId": "SS-018",
+    "recommendation": ""
+  },
+  {
+    "id": "TC-019",
+    "page": "PDF Export",
+    "control": "End-to-End PDF Output Generation & Integrity",
+    "expected": "Generates valid A4 landscape PDF document with timetable matrix, institution header, and signatories",
+    "actual": "PDF verified on disk: 667247 bytes, magic header valid (%PDF), readable layout",
+    "status": "PASS",
+    "screenshotId": "SS-018",
+    "recommendation": "Retain high vector fidelity on signatures and institution crest logos"
+  },
+  {
+    "id": "TC-020",
+    "page": "Authentication",
+    "control": "Sign Out & Protected Route Guard",
+    "expected": "Clears active token, clears localStorage session, and redirects to /login",
+    "actual": "Session cleared (token=null), redirected to /login: true",
+    "status": "PASS",
+    "screenshotId": "SS-019",
+    "recommendation": ""
+  }
+]

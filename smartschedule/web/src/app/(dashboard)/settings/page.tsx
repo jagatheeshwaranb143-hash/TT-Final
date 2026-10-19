@@ -2,9 +2,9 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, ArrowRight, Badge, Building2, CalendarDays, Check, CheckCircle2, Clock3, Eye, EyeOff, FileText, Globe2, GraduationCap, KeyRound, Languages, Laptop, Mail, MapPin, Moon, RotateCcw, Save, Search, Settings2, ShieldCheck, Sun, UserRound, Users } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Badge, BookOpen, Building2, CalendarDays, Check, CheckCircle2, Clock3, Eye, EyeOff, FileText, Globe2, GraduationCap, KeyRound, Languages, Laptop, LayoutList, Mail, MapPin, Moon, RotateCcw, Save, Search, Settings2, ShieldCheck, Sun, Table2, UserRound, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { applyTheme, ColorTheme, getBasicPreferences, getDefaultSemesterCycle, getTimetablePreferences, SemesterCycle, setBasicPreferences, setDefaultSemesterCycle, setTimetablePreferences } from '@/lib/preferences';
+import { applyTheme, ColorTheme, getBasicPreferences, getDefaultSemesterCycle, getTimetablePreferences, SemesterCycle, setBasicPreferences, setDefaultSemesterCycle, setTimetablePreferences, TimetableOrientation } from '@/lib/preferences';
 import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api';
 
@@ -108,8 +108,12 @@ export default function SettingsPage() {
 
   useEffect(() => {
     Promise.all([api.departments.list(), api.classes.list()]).then(([departmentData, classData]: any[]) => {
-      setDepartments((departmentData || []).filter((item: any) => item.department_type !== 'lab'));
+      const depts = (departmentData || []).filter((item: any) => item.department_type !== 'lab');
+      setDepartments(depts);
       setClasses(classData || []);
+      if (depts.length > 0 && !classDepartmentId) {
+        setClassDepartmentId(depts[0].id);
+      }
     }).catch(() => toast.error('Could not load department class details'));
   }, []);
 
@@ -185,11 +189,9 @@ export default function SettingsPage() {
       }
       const refreshed: any = await api.classes.list();
       setClasses(refreshed || []);
-      // Keep the just-saved settings in the form. Reading section letters again
-      // here can resurrect stale counts when a backend process has not yet
-      // applied the reconciliation response.
-      setClassCounts(requestedCounts);
-      toast.success(`Saved ${selectedClassDepartment.code} class setup. Added ${setupResult.classes_created} sections and removed ${setupResult.classes_removed || 0}.`);
+      syncClassCountsFromSaved(classDepartmentId, classCycle, refreshed || []);
+      const cycleDescription = classCycle === 'both' ? 'Both Odd & Even semesters (Sem 1 to 8)' : `${classCycle} semesters`;
+      toast.success(`Saved ${selectedClassDepartment.code} class setup for ${cycleDescription}. Added ${setupResult.classes_created} sections and removed ${setupResult.classes_removed || 0}.`);
     } catch (error: any) { toast.error(error.message || 'Could not save class setup'); }
     finally { setSavingClassSetup(false); }
   };
@@ -292,7 +294,68 @@ export default function SettingsPage() {
           <label><span>Semester cycle</span><select className="form-input" value={classCycle} onChange={event => setClassCycle(event.target.value as 'odd' | 'even' | 'both')}><option value="both">Both odd and even</option><option value="odd">Odd semester</option><option value="even">Even semester</option></select></label>
         </div>
         {selectedClassDepartment && <div className="class-config-summary"><div className="class-config-summary-head"><div><strong>{selectedClassDepartment.name}</strong><small>{selectedClassDepartment.code} · {selectedClassDepartment.department_type || 'Department'} · {classCycle === 'both' ? 'Odd & even semesters' : `${classCycle} semesters`}</small></div><span>{new Set(configuredClasses.map(item => `${item.year}-${item.section}`)).size} sections</span></div><div className="class-year-summary">{sectionSummary.map(row => <div key={row.year}><span>Year {row.year}</span><div>{row.sections.length ? row.sections.map(section => <i key={section}>{section}</i>) : <small>No saved sections</small>}</div></div>)}</div><p className="class-settings-warning"><AlertTriangle size={16} /> Changing section counts may remove dependent class, subject allocation, and timetable records. Removals require confirmation.</p></div>}
-        {selectedClassDepartment && <><div className="timetable-settings-grid">{[4, 3, 2, 1].map(year => <label key={year}><span>Year {year} sections (A, B, C…)</span><input className="form-input" type="number" min="0" max="26" value={classCounts[year]} onChange={event => setClassCounts(current => ({ ...current, [year]: Number(event.target.value) }))} /></label>)}</div><p style={{ color: '#64748b', margin: '8px 0 14px' }}>{configuredClasses.length} saved classes in {selectedClassDepartment.code}. You can increase or decrease these counts; reducing a count asks for confirmation and removes affected class assignments and timetables.</p><button type="button" className="btn btn-secondary" onClick={saveClassSetup} disabled={savingClassSetup}>{savingClassSetup ? 'Saving class setup…' : 'Save class setup (Year 4 → Year 1)'}</button></>}
+        {selectedClassDepartment && (
+          <>
+            <div className="timetable-settings-grid">
+              {[4, 3, 2, 1].map(year => (
+                <label key={year}>
+                  <span>Year {year} sections (A, B, C…)</span>
+                  <input
+                    className="form-input"
+                    type="number"
+                    min="0"
+                    max="26"
+                    value={classCounts[year]}
+                    onChange={event => setClassCounts(current => ({ ...current, [year]: Number(event.target.value) }))}
+                  />
+                </label>
+              ))}
+            </div>
+            <p style={{ color: '#64748b', margin: '8px 0 14px' }}>
+              {configuredClasses.length} saved classes in {selectedClassDepartment.code}. You can increase or decrease these counts; reducing a count asks for confirmation and removes affected class assignments and timetables.
+            </p>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={saveClassSetup}
+                disabled={savingClassSetup}
+              >
+                {savingClassSetup ? 'Saving class setup…' : 'Save class setup (Year 4 → Year 1)'}
+              </button>
+              <Link
+                href={`/subjects?department_id=${classDepartmentId}&department_type=${selectedClassDepartment.department_type || 'department'}`}
+                className="btn btn-primary"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none', fontWeight: 700 }}
+              >
+                <BookOpen size={16} />
+                <span>Go to Curriculum &amp; Subjects ({selectedClassDepartment.code})</span>
+                <ArrowRight size={16} />
+              </Link>
+            </div>
+
+            <div style={{ marginTop: 18, padding: '14px 18px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                <div>
+                  <strong style={{ color: '#166534', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <CheckCircle2 size={16} /> Subject &amp; Faculty Navigation Active
+                  </strong>
+                  <p style={{ color: '#15803d', fontSize: '0.82rem', margin: '3px 0 0' }}>
+                    {classCycle === 'both'
+                      ? `Both odd and even semesters (Sem 1 to 8) are selected for ${selectedClassDepartment.name}. Navigate directly to Curriculum & Subjects to assign courses and faculty.`
+                      : `${classCycle === 'odd' ? 'Odd' : 'Even'} semesters selected for ${selectedClassDepartment.name}. Navigate to Curriculum & Subjects to assign courses and faculty.`}
+                  </p>
+                </div>
+                <Link
+                  href={`/subjects?department_id=${classDepartmentId}&department_type=${selectedClassDepartment.department_type || 'department'}`}
+                  style={{ color: '#15803d', fontWeight: 700, fontSize: '0.85rem', textDecoration: 'underline' }}
+                >
+                  Open {selectedClassDepartment.code} Subjects →
+                </Link>
+              </div>
+            </div>
+          </>
+        )}
       </section>
       <section className="settings-card" id="settings-schedule" aria-labelledby="schedule-structure-heading">
         <div className="settings-heading"><Clock3 size={22} /><div><h2 id="schedule-structure-heading">College period details &amp; schedule structure</h2><p>Set weekly teaching periods, daily periods, period length, and break times.</p></div></div>
@@ -323,6 +386,31 @@ export default function SettingsPage() {
           <label><span>Default class timetable PDF</span><select className="form-input" value={timetable.timetablePdfTemplate} onChange={event => setTimetable(value => ({ ...value, timetablePdfTemplate: event.target.value as typeof value.pdfTemplate }))}><option value="modern">Modern</option><option value="classic">Classic</option><option value="minimal">Minimal</option></select></label>
           <label><span>Default master timetable PDF</span><select className="form-input" value={timetable.masterPdfTemplate} onChange={event => setTimetable(value => ({ ...value, masterPdfTemplate: event.target.value as typeof value.pdfTemplate }))}><option value="modern">Modern</option><option value="classic">Classic</option><option value="minimal">Minimal</option></select></label>
         </div>
+        <div className="settings-group-label" style={{ marginTop: 'var(--space-6)' }}>Timetable layout orientation</div>
+        <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)', marginBottom: 'var(--space-4)' }}>
+          Controls how the timetable is displayed on screen and in PDF exports. Switch between <strong>Horizontal</strong> (periods across columns, days as rows) and <strong>Vertical</strong> (days across columns, periods as rows).
+        </p>
+        <fieldset className="theme-options" style={{ gap: 'var(--space-3)' }}>
+          <legend>Layout orientation</legend>
+          {([
+            { value: 'horizontal' as TimetableOrientation, label: 'Horizontal', desc: 'Days → columns, Periods → rows', Icon: Table2 },
+            { value: 'vertical' as TimetableOrientation, label: 'Vertical', desc: 'Periods → columns, Days → rows', Icon: LayoutList },
+          ]).map(({ value, label, desc, Icon }) => (
+            <button
+              type="button"
+              key={value}
+              className={timetable.timetableOrientation === value ? 'selected' : ''}
+              aria-pressed={timetable.timetableOrientation === value}
+              onClick={() => setTimetable(current => ({ ...current, timetableOrientation: value }))}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 24px', minWidth: 160 }}
+            >
+              <Icon size={22} />
+              <span style={{ fontWeight: 600 }}>{label}</span>
+              <small style={{ fontWeight: 400, opacity: 0.75, fontSize: '0.72rem' }}>{desc}</small>
+              {timetable.timetableOrientation === value && <Check size={14} />}
+            </button>
+          ))}
+        </fieldset>
         <Link href="/settings/pdf-template" className="template-page-link"><span><FileText size={19} /><span><strong>PDF template designer</strong><small>Choose the layout, color, header, and footer used for every export.</small></span></span><ArrowRight size={18} /></Link>
         <div className="pdf-settings-preview"><div className="pdf-settings-preview-toolbar"><div><h3>Export preview</h3><p>Preview uses your current institution, title, footer, and selected export style.</p></div><div role="group" aria-label="Choose PDF preview type"><button type="button" aria-pressed={pdfPreviewType === 'class'} className={pdfPreviewType === 'class' ? 'active' : ''} onClick={() => setPdfPreviewType('class')}>Class PDF</button><button type="button" aria-pressed={pdfPreviewType === 'master'} className={pdfPreviewType === 'master' ? 'active' : ''} onClick={() => setPdfPreviewType('master')}>Master PDF</button></div></div><div className={`settings-pdf-sheet ${pdfPreviewType === 'class' ? timetable.timetablePdfTemplate : timetable.masterPdfTemplate}`}><header>{timetable.includeInstitutionName && <strong>{basic.institutionName || 'Institution name not set'}</strong>}<h4>{timetable.pdfTitle || 'Timetable'}</h4><small>{pdfPreviewType === 'class' ? 'Class timetable' : 'Master timetable'} · {basic.academicYear}</small></header><table><thead><tr><th>Day</th>{Array.from({ length: Math.min(timetable.periodsPerDay, 6) }, (_, index) => <th key={index}>P{index + 1}</th>)}</tr></thead><tbody>{timetable.workingDays.slice(0, 3).map(day => <tr key={day}><th>{workingDayNames[day - 1]?.slice(0, 3)}</th>{Array.from({ length: Math.min(timetable.periodsPerDay, 6) }, (_, index) => <td key={index}>{index % 2 === 0 ? 'Subject' : '—'}<small>{index % 2 === 0 ? 'Faculty' : ''}</small></td>)}</tr>)}</tbody></table><footer>{timetable.pdfFooter}</footer></div></div>
       </section>

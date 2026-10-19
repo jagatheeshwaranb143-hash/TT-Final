@@ -2,16 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, BookOpen, Building2, CalendarCheck2, GraduationCap, Sparkles, Users, WandSparkles } from 'lucide-react';
+import { ArrowRight, BookOpen, Building2, CalendarCheck2, CheckCircle2, GraduationCap, Sparkles, Users, WandSparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '@/lib/api';
 
 const workflow = [
-  { title: 'Create departments', text: 'Define the academic structure and department codes.', href: '/departments' },
-  { title: 'Assign people & subjects', text: 'Connect qualified faculty to the curriculum.', href: '/faculty' },
-  { title: 'Generate each semester', text: 'Build schedules in sequence with CP-SAT constraints.', href: '/timetable/generate' },
-  { title: 'Review & adjust', text: 'Inspect every class and safely edit individual slots.', href: '/timetable' },
-];
+  { title: 'Create departments', text: 'Define the academic structure and department codes.', href: '/departments', countKey: 'departments' },
+  { title: 'Assign people & subjects', text: 'Connect qualified faculty to the curriculum.', href: '/faculty', countKey: 'faculty' },
+  { title: 'Generate each semester', text: 'Build schedules in sequence with CP-SAT constraints.', href: '/timetable/generate', countKey: 'entries' },
+  { title: 'Review & adjust', text: 'Inspect every class and safely edit individual slots.', href: '/timetable', countKey: 'entries' },
+] as const;
 
 export default function PrincipalDashboard() {
   const [counts, setCounts] = useState({ departments: 0, faculty: 0, subjects: 0, classes: 0, entries: 0 });
@@ -47,6 +47,7 @@ export default function PrincipalDashboard() {
     { label: 'Faculty members', value: counts.faculty, href: '/faculty', icon: Users, tone: 'violet' },
     { label: 'Course subjects', value: counts.subjects, href: '/subjects', icon: BookOpen, tone: 'amber' },
     { label: 'Active classes', value: counts.classes, href: '/classes', icon: GraduationCap, tone: 'teal' },
+    { label: 'Scheduled periods', value: counts.entries, href: '/timetable', icon: CalendarCheck2, tone: 'green' },
   ];
 
   return (
@@ -62,8 +63,8 @@ export default function PrincipalDashboard() {
           </div>
         </div>
         <div className="hero-health">
-          <div className="health-ring"><CalendarCheck2 size={31} /><strong>{counts.entries.toLocaleString()}</strong><span>scheduled periods</span></div>
-          <p><i /> Live schedule data</p>
+          <div className="health-ring"><CheckCircle2 size={31} /><strong>{counts.departments > 0 ? 'Ready' : 'Setup'}</strong><span>{counts.departments > 0 ? 'system active' : 'required'}</span></div>
+          <p><i /> {counts.entries > 0 ? `${counts.entries.toLocaleString()} periods scheduled` : 'No schedule generated yet'}</p>
         </div>
       </section>
 
@@ -82,12 +83,15 @@ export default function PrincipalDashboard() {
       <section className="workflow-panel">
         <div className="panel-heading"><div><span>Recommended workflow</span><h2>From setup to a finished timetable</h2></div><p>Complete these steps in order for the strongest generation result.</p></div>
         <div className="workflow-grid">
-          {workflow.map((step, index) => (
-            <Link href={step.href} className="workflow-step" key={step.title}>
-              <span className="step-number">{String(index + 1).padStart(2, '0')}</span>
-              <h3>{step.title}</h3><p>{step.text}</p><span className="step-link">Continue <ArrowRight size={15} /></span>
-            </Link>
-          ))}
+          {workflow.map((step, index) => {
+            const isDone = !loading && counts[step.countKey as keyof typeof counts] > 0;
+            return (
+              <Link href={step.href} className={`workflow-step${isDone ? ' done' : ''}`} key={step.title}>
+                <span className="step-number">{isDone ? <CheckCircle2 size={17} /> : String(index + 1).padStart(2, '0')}</span>
+                <h3>{step.title}</h3><p>{step.text}</p><span className="step-link">Continue <ArrowRight size={15} /></span>
+              </Link>
+            );
+          })}
         </div>
       </section>
     </div>

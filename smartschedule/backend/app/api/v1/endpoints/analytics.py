@@ -37,11 +37,67 @@ async def principal_stats(
 
 @router.get("/workload-stats", status_code=status.HTTP_200_OK)
 async def workload_stats(
+    department_id: str | None = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    """Get faculty workload stats."""
-    return {"data": [], "message": "No timetable data yet"}
+    """Get department stats for HOD dashboard (DEF-001 fix).
+
+    Resolution order for department_id:
+      1. Explicit query param (admin override)
+      2. Current user's own department_id (HOD)
+      3. First available department (super_admin with no dept)
+    """
+    from sqlalchemy import select, func
+    from app.models.models import Department, Faculty, Subject, Class, TimetableEntry
+
+    dept_id = department_id or current_user.department_id
+
+    # Fallback: super_admin has no department_id — pick the first department
+    if not dept_id:
+        first_dept = await db.scalar(select(Department.id).limit(1))
+        dept_id = first_dept
+
+    # Fetch department name
+    department_name: str = "Your Department"
+    if dept_id:
+        dept = await db.scalar(select(Department.name).where(Department.id == dept_id))
+        if dept:
+            department_name = dept
+
+    # Count faculty in this department
+    faculty_count = await db.scalar(
+        select(func.count()).select_from(Faculty).where(Faculty.department_id == dept_id)
+    ) if dept_id else 0
+
+    # Count subjects in this department
+    subjects_count = await db.scalar(
+        select(func.count()).select_from(Subject).where(Subject.department_id == dept_id)
+    ) if dept_id else 0
+
+    # Count classes in this department
+    classes_count = await db.scalar(
+        select(func.count()).select_from(Class).where(Class.department_id == dept_id)
+    ) if dept_id else 0
+
+    # Count timetable entries for classes in this department
+    entries_count = await db.scalar(
+        select(func.count())
+        .select_from(TimetableEntry)
+        .join(Class, TimetableEntry.class_id == Class.id)
+        .where(Class.department_id == dept_id)
+    ) if dept_id else 0
+
+    return {
+        "departmentId": dept_id,
+        "departmentName": department_name,
+        "facultyCount": faculty_count or 0,
+        "subjectsCount": subjects_count or 0,
+        "classesCount": classes_count or 0,
+        "entriesCount": entries_count or 0,
+        "isPublished": (entries_count or 0) > 0,
+    }
+
 
 
 @router.get("/room-utilization", status_code=status.HTTP_200_OK)

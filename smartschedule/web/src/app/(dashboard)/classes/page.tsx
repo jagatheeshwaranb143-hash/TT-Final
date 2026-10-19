@@ -13,6 +13,7 @@ export default function ClassesPage() {
     year_level: 1,
     semester: 1,
     section: 'A',
+    alsoApplyToPairedSemester: true,
   });
   const [submitting, setSubmitting] = useState(false);
   const [departmentFilter, setDepartmentFilter] = useState('all');
@@ -61,30 +62,59 @@ export default function ClassesPage() {
     try {
       setSubmitting(true);
       const targetDepartmentId = formLinkedLiteratureDepartment?.id || formData.department_id;
+      const normalizedSection = (formData.section || 'A').trim().toUpperCase();
       const duplicateClass = classesList.find(item =>
         item.department_id === targetDepartmentId &&
         item.year === formData.year_level &&
         item.semester === formData.semester &&
-        String(item.section || 'A').toUpperCase() === formData.section.toUpperCase()
+        String(item.section || 'A').toUpperCase() === normalizedSection
       );
       if (duplicateClass) {
-        toast.error(`Year ${formData.year_level}, Semester ${formData.semester}, Section ${formData.section.toUpperCase()} already exists for ${formLinkedLiteratureDepartment?.name || departments.find(item => item.id === targetDepartmentId)?.name || 'this department'}.`);
+        toast.error(`Year ${formData.year_level}, Semester ${formData.semester}, Section ${normalizedSection} already exists for ${formLinkedLiteratureDepartment?.name || departments.find(item => item.id === targetDepartmentId)?.name || 'this department'}.`);
         return;
       }
       await api.classes.create({
         department_id: targetDepartmentId,
         year: formData.year_level,
         semester: formData.semester,
-        section: formData.section,
+        section: normalizedSection,
       });
 
-      toast.success('Class created successfully!');
+      if (formData.alsoApplyToPairedSemester) {
+        const pairedSemester = formData.semester % 2 === 1 ? formData.semester + 1 : formData.semester - 1;
+        const pairedDuplicate = classesList.find(item =>
+          item.department_id === targetDepartmentId &&
+          item.year === formData.year_level &&
+          item.semester === pairedSemester &&
+          String(item.section || 'A').toUpperCase() === normalizedSection
+        );
+        if (!pairedDuplicate) {
+          try {
+            await api.classes.create({
+              department_id: targetDepartmentId,
+              year: formData.year_level,
+              semester: pairedSemester,
+              section: normalizedSection,
+            });
+            toast.success(`Section ${normalizedSection} created for Semester ${formData.semester} and paired Semester ${pairedSemester}!`);
+          } catch (pairedErr: any) {
+            console.warn('Paired semester creation note:', pairedErr);
+            toast.success(`Class created for Semester ${formData.semester}!`);
+          }
+        } else {
+          toast.success(`Class created for Semester ${formData.semester} (paired Semester ${pairedSemester} already exists).`);
+        }
+      } else {
+        toast.success('Class created successfully!');
+      }
+
       setShowModal(false);
       setFormData({
         department_id: '',
         year_level: 1,
         semester: 1,
         section: 'A',
+        alsoApplyToPairedSemester: true,
       });
       loadData();
     } catch (e: any) {
@@ -219,12 +249,17 @@ export default function ClassesPage() {
                       Delete
                     </button>
                   </div>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.35rem' }}>{cls.department_name || 'Class'}  Semester {cls.semester}</h3>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.35rem' }}>
+                    {cls.department_name || 'Class'} · Semester {cls.semester}
+                  </h3>
                   <div style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '0.5rem' }}>
                     <strong>Department:</strong> {dept ? `${dept.name} (${dept.code})` : 'Department'}
                   </div>
-                  <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', color: '#64748b' }}>
-                    <span> {YEAR_LABELS[cls.year] || `Year ${cls.year}`}</span>
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', fontSize: '0.85rem', color: '#64748b' }}>
+                    <span>{YEAR_LABELS[cls.year] || `Year ${cls.year}`}</span>
+                    <span style={{ background: '#e0e7ff', color: '#3730a3', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem' }}>
+                      Section {cls.section || 'A'}
+                    </span>
                     <span>{cls.subjects?.length || 0} Subjects</span>
                   </div>
                 </div>
@@ -304,6 +339,33 @@ export default function ClassesPage() {
                     ))}
                   </select>
                 </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Section</label>
+                  <select
+                    value={formData.section}
+                    onChange={(e) => setFormData({ ...formData, section: e.target.value.toUpperCase() })}
+                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem' }}
+                  >
+                    {['A', 'B', 'C', 'D', 'E', 'F'].map(sec => (
+                      <option key={sec} value={sec}>Section {sec}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '1.25rem', padding: '11px 14px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, color: '#1e293b' }}>
+                  <input
+                    type="checkbox"
+                    checked={formData.alsoApplyToPairedSemester}
+                    onChange={(e) => setFormData({ ...formData, alsoApplyToPairedSemester: e.target.checked })}
+                    style={{ width: 16, height: 16, accentColor: '#2563eb' }}
+                  />
+                  Also apply Section {formData.section} to paired Semester {formData.semester % 2 === 1 ? formData.semester + 1 : formData.semester - 1}
+                </label>
+                <p style={{ margin: '4px 0 0 24px', fontSize: '0.78rem', color: '#64748b' }}>
+                  Automatically creates Section {formData.section} in {formData.semester % 2 === 1 ? `Semester ${formData.semester + 1}` : `Semester ${formData.semester - 1}`} so student sections stay consistent across both semesters in Year {formData.year_level}.
+                </p>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>

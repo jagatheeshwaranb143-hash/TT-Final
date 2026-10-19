@@ -1,0 +1,62 @@
+[
+  {
+    "url": "http://localhost:3000/",
+    "durationMs": 1501
+  },
+  {
+    "url": "http://localhost:3000/login",
+    "durationMs": 2117
+  },
+  {
+    "url": "http://localhost:3000/principal",
+    "durationMs": 3204
+  },
+  {
+    "url": "http://localhost:3000/hod",
+    "durationMs": 3153
+  },
+  {
+    "url": "http://localhost:3000/student",
+    "durationMs": 3145
+  },
+  {
+    "url": "http://localhost:3000/departments",
+    "durationMs": 3133
+  },
+  {
+    "url": "http://localhost:3000/faculty",
+    "durationMs": 3138
+  },
+  {
+    "url": "http://localhost:3000/classes",
+    "durationMs": 3126
+  },
+  {
+    "url": "http://localhost:3000/subjects",
+    "durationMs": 3090
+  },
+  {
+    "url": "http://localhost:3000/timetable/generate",
+    "durationMs": 3117
+  },
+  {
+    "url": "http://localhost:3000/timetable",
+    "durationMs": 3109
+  },
+  {
+    "url": "http://localhost:3000/timetable/master",
+    "durationMs": 4498
+  },
+  {
+    "url": "http://localhost:3000/settings",
+    "durationMs": 3854
+  },
+  {
+    "url": "http://localhost:3000/about",
+    "durationMs": 3053
+  },
+  {
+    "url": "http://localhost:3000/timetable",
+    "durationMs": 2627
+  }
+]

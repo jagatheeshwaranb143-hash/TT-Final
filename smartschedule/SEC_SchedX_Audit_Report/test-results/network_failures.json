@@ -1,0 +1,93 @@
+[
+  {
+    "requestId": "28320.71",
+    "timestamp": 2066.030001,
+    "type": "Fetch",
+    "errorText": "net::ERR_ABORTED",
+    "canceled": true
+  },
+  {
+    "requestId": "28320.103",
+    "timestamp": 2069.997386,
+    "type": "Fetch",
+    "errorText": "net::ERR_ABORTED",
+    "canceled": true
+  },
+  {
+    "requestId": "28320.127",
+    "timestamp": 2074.256686,
+    "type": "Fetch",
+    "errorText": "net::ERR_ABORTED",
+    "canceled": true
+  },
+  {
+    "requestId": "28320.149",
+    "timestamp": 2078.550512,
+    "type": "Fetch",
+    "errorText": "net::ERR_ABORTED",
+    "canceled": true
+  },
+  {
+    "requestId": "28320.174",
+    "timestamp": 2082.933349,
+    "type": "Fetch",
+    "errorText": "net::ERR_ABORTED",
+    "canceled": true
+  },
+  {
+    "requestId": "28320.202",
+    "timestamp": 2087.73735,
+    "type": "Fetch",
+    "errorText": "net::ERR_ABORTED",
+    "canceled": true
+  },
+  {
+    "requestId": "28320.229",
+    "timestamp": 2090.509318,
+    "type": "Fetch",
+    "errorText": "net::ERR_ABORTED",
+    "canceled": true
+  },
+  {
+    "requestId": "28320.259",
+    "timestamp": 2097.167545,
+    "type": "Fetch",
+    "errorText": "net::ERR_ABORTED",
+    "canceled": true
+  },
+  {
+    "requestId": "28320.286",
+    "timestamp": 2100.498889,
+    "type": "Fetch",
+    "errorText": "net::ERR_ABORTED",
+    "canceled": true
+  },
+  {
+    "requestId": "28320.316",
+    "timestamp": 2111.437642,
+    "type": "Fetch",
+    "errorText": "net::ERR_ABORTED",
+    "canceled": true
+  },
+  {
+    "requestId": "28320.343",
+    "timestamp": 2116.551147,
+    "type": "Fetch",
+    "errorText": "net::ERR_ABORTED",
+    "canceled": true
+  },
+  {
+    "requestId": "28320.373",
+    "timestamp": 2122.012412,
+    "type": "Fetch",
+    "errorText": "net::ERR_ABORTED",
+    "canceled": true
+  },
+  {
+    "requestId": "28320.395",
+    "timestamp": 2124.739458,
+    "type": "Fetch",
+    "errorText": "net::ERR_ABORTED",
+    "canceled": true
+  }
+]

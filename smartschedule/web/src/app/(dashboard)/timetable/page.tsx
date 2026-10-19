@@ -3,10 +3,12 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Sheet } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '@/lib/api';
 import TimetableGrid from '@/components/timetable/TimetableGrid';
 import { exportTimetablePdf } from '@/lib/timetable-pdf';
+import { exportClassTimetableExcel } from '@/lib/timetable-excel';
 import { getBasicPreferences, getDefaultSemesterCycle, getTimetablePreferences, setTimetablePreferences } from '@/lib/preferences';
 
 const defaultPeriods = [
@@ -49,6 +51,8 @@ export default function TimetablePage() {
   const [classes, setClasses] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [selectedClassId, setSelectedClassId] = useState('');
+  const [selectedYear, setSelectedYear] = useState<number>(1);
+  const [selectedSection, setSelectedSection] = useState<string>('A');
   const [entries, setEntries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -173,6 +177,57 @@ export default function TimetablePage() {
   const departmentLabel = (item: any) => departments.find(department => department.id === item.department_id)?.code || item.department_name || 'Department';
   const classOptionLabel = (item: any) => `Year ${item.year} - ${departmentLabel(item)} - Section ${item.section}`;
   const label = (item: any) => `${departmentLabel(item)} - Year ${item.year}, Semester ${item.semester}, Section ${item.section}`;
+
+  const yearClasses = useMemo(() =>
+    filteredClasses.filter(item => item.year === selectedYear),
+    [filteredClasses, selectedYear]
+  );
+
+  const availableSections = useMemo(() =>
+    Array.from(new Set(yearClasses.map(item => String(item.section || 'A').toUpperCase()))),
+    [yearClasses]
+  );
+
+  useEffect(() => {
+    if (selectedClass) {
+      setSelectedYear(selectedClass.year);
+      setSelectedSection(String(selectedClass.section || 'A').toUpperCase());
+    }
+  }, [selectedClass]);
+
+  useEffect(() => {
+    if (departmentFilter && filteredClasses.length > 0) {
+      const currentValid = filteredClasses.some(c => c.id === selectedClassId);
+      if (!currentValid) {
+        const matching = filteredClasses.find(c => c.year === selectedYear && String(c.section || 'A').toUpperCase() === selectedSection.toUpperCase()) || filteredClasses[0];
+        if (matching) {
+          setSelectedClassId(matching.id);
+          setSelectedYear(matching.year);
+          setSelectedSection(String(matching.section || 'A').toUpperCase());
+        }
+      }
+    }
+  }, [departmentFilter, semesterGroup, filteredClasses, selectedClassId, selectedYear, selectedSection]);
+
+  const handleYearChange = (year: number) => {
+    setSelectedYear(year);
+    const classesForYear = filteredClasses.filter(c => c.year === year);
+    const matching = classesForYear.find(c => String(c.section || 'A').toUpperCase() === selectedSection.toUpperCase()) || classesForYear[0];
+    if (matching) {
+      setSelectedSection(String(matching.section || 'A').toUpperCase());
+      setSelectedClassId(matching.id);
+    } else {
+      setSelectedClassId('');
+    }
+  };
+
+  const handleSectionChange = (section: string) => {
+    setSelectedSection(section);
+    const matching = filteredClasses.find(c => c.year === selectedYear && String(c.section || 'A').toUpperCase() === section.toUpperCase());
+    if (matching) {
+      setSelectedClassId(matching.id);
+    }
+  };
 
   const moveEntry = async (entryId: string, displayDay: number, period: number) => {
     if (moving) return false;
@@ -300,6 +355,22 @@ export default function TimetablePage() {
     } catch (error: any) { toast.error(error.message); }
   };
 
+  const exportSelectedClassExcel = () => {
+    if (!selectedClass || entries.length === 0) return;
+    try {
+      exportClassTimetableExcel({
+        className: label(selectedClass),
+        departmentName: selectedClass.department_name,
+        periods,
+        entries,
+        workingDays,
+      });
+      toast.success('Class timetable exported to Excel');
+    } catch (error: any) {
+      toast.error(error.message || 'Could not export Excel');
+    }
+  };
+
   return (
     <div style={{ padding: '2rem', maxWidth: 1400, margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', gap: 18, flexWrap: 'wrap', marginBottom: 24 }}>
@@ -308,6 +379,7 @@ export default function TimetablePage() {
           {selectedClass && entries.length > 0 && <>
             <label style={{ display: 'inline-flex', alignItems: 'center', gap: 7, color: '#475569', fontSize: 13, fontWeight: 700 }}><input type="checkbox" checked={includeBreaksInPdf} onChange={event => setIncludeBreaksInPdf(event.target.checked)} /> Breaks in PDF</label>
             <button type="button" className="btn btn-secondary" onClick={exportSelectedClassPdf}>Export timetable PDF</button>
+            <button type="button" className="btn btn-secondary" onClick={exportSelectedClassExcel}><Sheet size={15} /> Export Excel</button>
           </>}
           {selectedClass && entries.length > 0 && <button type="button" className="btn btn-secondary" aria-pressed={showTemplateView} onClick={() => setShowTemplateView(value => !value)}>{showTemplateView ? 'Standard timetable view' : 'Show timetable with template'}</button>}
           {showTemplateView && <button type="button" className="btn btn-secondary" onClick={() => setEditSignatories(value => !value)}>{editSignatories ? 'Close signatory editor' : 'Edit template signatories'}</button>}
@@ -321,13 +393,93 @@ export default function TimetablePage() {
       ) : (
         <>
           <div className="card" style={{ marginBottom: 20 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(190px, .8fr) minmax(220px, 1fr) minmax(190px, .7fr) minmax(280px, 1.35fr)', gap: 14 }}>
-              <div><label className="form-label" htmlFor="view-department-type">Department type</label><select id="view-department-type" className="form-input" value={departmentTypeFilter} onChange={event => { setDepartmentTypeFilter(event.target.value as 'department' | 'lab' | ''); setDepartmentFilter(''); setSelectedClassId(''); }} style={{ marginTop: 7, padding: 11, color: departmentTypeFilter ? '#334155' : '#94a3b8' }}><option value="" disabled hidden>Choose department type</option><option value="department">Literature Department</option><option value="lab">Lab Department</option></select></div>
-              <div><label className="form-label" htmlFor="view-department">Department</label><select id="view-department" className="form-input" value={departmentFilter} onChange={event => { setDepartmentFilter(event.target.value); setSemesterGroup(getDefaultSemesterCycle()); setSelectedClassId(''); }} disabled={!departmentTypeFilter} style={{ marginTop: 7, padding: 11, color: departmentFilter ? '#334155' : '#94a3b8' }}><option value="" disabled hidden>{departmentTypeFilter ? 'Choose a department' : 'Choose department type first'}</option>{filteredDepartments.map(item => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}</select></div>
-              <div><label className="form-label" htmlFor="view-semester-group">Semester type</label><select id="view-semester-group" className="form-input" value={semesterGroup} onChange={event => { setSemesterGroup(event.target.value as 'odd' | 'even'); setSelectedClassId(''); }} disabled={!departmentFilter} style={{ marginTop: 7, padding: 11 }}><option value="odd">Odd Semester</option><option value="even">Even Semester</option></select></div>
-              <div><label className="form-label" htmlFor="view-class">Class ({filteredClasses.length} available)</label><select id="view-class" className="form-input" value={selectedClassId} onChange={event => setSelectedClassId(event.target.value)} disabled={!departmentFilter || filteredClasses.length === 0} style={{ marginTop: 7, padding: 11, color: selectedClassId ? '#334155' : '#94a3b8' }}><option value="" disabled hidden>{filteredClasses.length ? 'Choose a class' : 'No classes available'}</option>{filteredClasses.map(item => <option key={item.id} value={item.id}>{classOptionLabel(item)}</option>)}</select></div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 }}>
+              <div>
+                <label className="form-label" htmlFor="view-department-type">Department type</label>
+                <select
+                  id="view-department-type"
+                  className="form-input"
+                  value={departmentTypeFilter}
+                  onChange={event => { setDepartmentTypeFilter(event.target.value as 'department' | 'lab' | ''); setDepartmentFilter(''); setSelectedClassId(''); }}
+                  style={{ marginTop: 7, padding: 11, color: departmentTypeFilter ? '#334155' : '#94a3b8' }}
+                >
+                  <option value="" disabled hidden>Choose department type</option>
+                  <option value="department">Literature Department</option>
+                  <option value="lab">Lab Department</option>
+                </select>
+              </div>
+              <div>
+                <label className="form-label" htmlFor="view-department">Department</label>
+                <select
+                  id="view-department"
+                  className="form-input"
+                  value={departmentFilter}
+                  onChange={event => { setDepartmentFilter(event.target.value); setSemesterGroup(getDefaultSemesterCycle()); setSelectedClassId(''); }}
+                  disabled={!departmentTypeFilter}
+                  style={{ marginTop: 7, padding: 11, color: departmentFilter ? '#334155' : '#94a3b8' }}
+                >
+                  <option value="" disabled hidden>{departmentTypeFilter ? 'Choose a department' : 'Choose department type first'}</option>
+                  {filteredDepartments.map(item => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="form-label" htmlFor="view-semester-group">Semester type</label>
+                <select
+                  id="view-semester-group"
+                  className="form-input"
+                  value={semesterGroup}
+                  onChange={event => { setSemesterGroup(event.target.value as 'odd' | 'even'); setSelectedClassId(''); }}
+                  disabled={!departmentFilter}
+                  style={{ marginTop: 7, padding: 11 }}
+                >
+                  <option value="odd">Odd Semester</option>
+                  <option value="even">Even Semester</option>
+                </select>
+              </div>
+              <div>
+                <label className="form-label" htmlFor="view-year">Class Year</label>
+                <select
+                  id="view-year"
+                  className="form-input"
+                  value={selectedYear}
+                  onChange={event => handleYearChange(Number(event.target.value))}
+                  disabled={!departmentFilter || filteredClasses.length === 0}
+                  style={{ marginTop: 7, padding: 11 }}
+                >
+                  <option value={1}>Year 1 (Sem {semesterGroup === 'odd' ? 1 : 2})</option>
+                  <option value={2}>Year 2 (Sem {semesterGroup === 'odd' ? 3 : 4})</option>
+                  <option value={3}>Year 3 (Sem {semesterGroup === 'odd' ? 5 : 6})</option>
+                  <option value={4}>Year 4 (Sem {semesterGroup === 'odd' ? 7 : 8})</option>
+                </select>
+              </div>
+              {availableSections.length > 1 && (
+                <div>
+                  <label className="form-label" htmlFor="view-section">Section ({availableSections.length} available)</label>
+                  <select
+                    id="view-section"
+                    className="form-input"
+                    value={selectedSection}
+                    onChange={event => handleSectionChange(event.target.value)}
+                    style={{ marginTop: 7, padding: 11 }}
+                  >
+                    {availableSections.map(sec => (
+                      <option key={sec} value={sec}>Section {sec}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
-            {selectedClass && <p style={{ color: '#64748b', fontSize: 13, marginTop: 10 }}>{selectedClass.subjects?.length || 0} subjects configured for this class.</p>}
+            {selectedClass ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, padding: '8px 12px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0', flexWrap: 'wrap', gap: 8 }}>
+                <div style={{ color: '#0f172a', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ background: '#2563eb', color: '#fff', padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 700 }}>Active Class</span>
+                  <span>{label(selectedClass)}</span>
+                </div>
+                <span style={{ color: '#64748b', fontSize: 12 }}>{selectedClass.subjects?.length || 0} subjects configured</span>
+              </div>
+            ) : filteredClasses.length > 0 ? (
+              <p style={{ color: '#e11d48', fontSize: 13, marginTop: 10 }}>No class section found for Year {selectedYear}. Choose an available year or section.</p>
+            ) : null}
           </div>
 
           {loading ? <div className="card">Loading timetable...</div> : !selectedClassId ? (
@@ -392,7 +544,7 @@ export default function TimetablePage() {
                 <div className="pdf-structure-scroll class-template-section-scroll"><table className="pdf-structure-table class-template-people"><caption>Class coordination</caption><tbody><tr><th>{templatePreferences.pdfStructure?.coordinatorLabels?.[0] || 'CLASS COORDINATOR'}</th><td>{signatories.classCoordinator || '-'}</td><th>{templatePreferences.pdfStructure?.coordinatorLabels?.[1] || 'FACULTY ADVISOR'}</th><td>{signatories.facultyAdvisor || '-'}</td></tr></tbody></table></div>
                 <div className="pdf-structure-scroll class-template-section-scroll"><table className="pdf-structure-table class-template-approvals"><caption>Approval and sign-off</caption><thead><tr>{(['timetableIncharge', 'overallTtCoordinator', 'hod', 'vicePrincipal', 'principal'] as const).map((key, index) => <th key={key}>{templatePreferences.pdfStructure?.approvalLabels?.[index] || ['DEPT. TT COORDINATOR', 'OVERALL TT COORDINATOR', 'HOD', 'VICE-PRINCIPAL', 'PRINCIPAL'][index]}</th>)}</tr></thead><tbody><tr>{(['timetableIncharge', 'overallTtCoordinator', 'hod', 'vicePrincipal', 'principal'] as const).map(key => <td key={key}>{signatories[key] || (key === 'principal' ? getBasicPreferences().principalName : '') || '-'}</td>)}</tr></tbody></table></div>
 {editSignatories && <div className="template-signatory-editor"><p>Choose names for the four template tables. Faculty options are filtered to {selectedClass?.department_name || 'the selected department'}.</p>{([{ key: 'classCoordinator', label: 'Class Coordinator' }, { key: 'facultyAdvisor', label: 'Faculty Advisor' }, { key: 'timetableIncharge', label: `Department Timetable Coordinator - ${selectedClass?.department_name || 'Selected department'}` }, { key: 'overallTtCoordinator', label: 'Overall Timetable Coordinator' }, { key: 'hod', label: `HOD - ${selectedClass?.department_name || 'Selected department'}` }, { key: 'vicePrincipal', label: 'Vice Principal' }, { key: 'principal', label: 'Principal' }] as const).map(({ key, label }) => <label key={key}><span>{label}</span><select className="form-input" value={signatories[key] || ''} onChange={event => setSignatories(value => ({ ...value, [key]: event.target.value }))}><option value="">Select a name</option>{key === 'vicePrincipal' && <option value="Dr.P.SUJATHA">Dr.P.SUJATHA</option>}{key === 'principal' && <option value="Dr.M.ARULKUMARAN">Dr.M.ARULKUMARAN</option>}{departmentFaculty.map((member: any) => <option key={member.id} value={member.name}>{member.name}{member.department?.name ? ` · ${member.department.name}` : ''}</option>)}</select></label>)}<button type="button" className="btn btn-primary" onClick={saveSignatories}>Save template details</button></div>}
-              </section> : <div style={{ minWidth: 980 }}><TimetableGrid entries={entries} periods={periods} workingDays={workingDays} isEditable={editing && !moving} onEntryMove={moveEntry} onEntryDelete={deleteEntry} onCellSelect={assignSelectedSubject} /></div>}
+              </section> : <div style={{ minWidth: 980 }}><TimetableGrid entries={entries} periods={periods} workingDays={workingDays} isEditable={editing && !moving} orientation={getTimetablePreferences().timetableOrientation || 'horizontal'} onEntryMove={moveEntry} onEntryDelete={deleteEntry} onCellSelect={assignSelectedSubject} /></div>}
             </div>
           )}
         </>

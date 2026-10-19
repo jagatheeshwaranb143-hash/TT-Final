@@ -1,43 +1,68 @@
-'use client';
+﻿'use client';
+
+import Link from 'next/link';
+import { ArrowRight, CalendarDays, Clock, GraduationCap, Sparkles } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
 export default function StudentDashboard() {
   const { user } = useAuth();
-  
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const dayOfWeek = new Date().getDay(); // 0=Sun, 6=Sat
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
   return (
-    <div>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h1 className="page-title">Welcome, {user?.full_name || 'Student'}</h1>
-        <p className="page-subtitle">{today}</p>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
-        <div className="card" style={{ background: 'var(--color-primary-50)', border: '1px solid var(--color-primary)' }}>
-          <h3 style={{ fontSize: '0.875rem', color: 'var(--color-primary)', fontWeight: 600, marginBottom: '0.5rem' }}>Current Class</h3>
-          <div className="empty-state" style={{ padding: '2rem 1rem' }}>
-            <p style={{ color: 'var(--color-text-secondary)' }}>No class in session right now.</p>
+    <div className="overview-page">
+      {/* Hero */}
+      <section className="overview-hero">
+        <div className="hero-copy">
+          <div className="hero-kicker"><GraduationCap size={15} /> Student Portal</div>
+          <h1>Welcome back,<br /><span>{user?.full_name || 'Student'}</span></h1>
+          <p>{today}{isWeekend ? ' — Enjoy your weekend!' : ' — Have a productive day!'}</p>
+          <div className="hero-actions">
+            <Link className="hero-primary" href="/timetable">
+              <CalendarDays size={18} /> View my timetable
+            </Link>
           </div>
         </div>
-        <div className="card">
-          <h3 style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', fontWeight: 600, marginBottom: '0.5rem' }}>Next Class</h3>
-          <div className="empty-state" style={{ padding: '2rem 1rem' }}>
-            <p style={{ color: 'var(--color-text-secondary)' }}>No upcoming classes today.</p>
+        <div className="hero-health">
+          <div className="health-ring">
+            <Clock size={31} />
+            <strong>{isWeekend ? 'Off' : 'On'}</strong>
+            <span>{isWeekend ? 'no classes today' : 'check timetable'}</span>
+          </div>
+          <p><i />{isWeekend ? 'Weekend' : 'Weekday'}</p>
+        </div>
+      </section>
+
+      {/* Quick cards */}
+      <section className="overview-stats" aria-label="Quick access">
+        <Link href="/timetable" className="overview-stat">
+          <div className="stat-symbol blue"><CalendarDays size={21} /></div>
+          <div><span>My timetable</span><strong>View weekly schedule</strong></div>
+          <ArrowRight className="stat-arrow" size={17} />
+        </Link>
+        <Link href="/timetable/master" className="overview-stat">
+          <div className="stat-symbol teal"><Sparkles size={21} /></div>
+          <div><span>Department master</span><strong>All class periods</strong></div>
+          <ArrowRight className="stat-arrow" size={17} />
+        </Link>
+      </section>
+
+      {/* Info panel */}
+      <section className="card" style={{ padding: '28px', marginTop: '0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '14px' }}>
+          <div className="stat-symbol blue" style={{ width: 40, height: 40, flex: '0 0 40px' }}><CalendarDays size={19} /></div>
+          <div>
+            <h2 style={{ fontSize: '17px', marginBottom: '2px' }}>Your schedule</h2>
+            <p style={{ color: 'var(--color-text-secondary)', fontSize: '13px' }}>
+              Your department&apos;s timetable is managed by the HOD and admin. Check the timetable page for your weekly class schedule.
+            </p>
           </div>
         </div>
-      </div>
-
-      <div className="card">
-        <div className="section-header">
-          <h2 className="section-title">Weekly Timetable</h2>
-        </div>
-        <div className="empty-state">
-          <div className="empty-state-icon">📅</div>
-          <div className="empty-state-title">Timetable Not Available</div>
-          <div className="empty-state-desc">Your department has not published the timetable yet.</div>
-        </div>
-      </div>
+        <Link href="/timetable" className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', fontSize: '13px' }}>
+          Open timetable <ArrowRight size={15} />
+        </Link>
+      </section>
     </div>
   );
 }
