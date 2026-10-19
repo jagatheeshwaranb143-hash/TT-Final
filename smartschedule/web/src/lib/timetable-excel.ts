@@ -3,8 +3,6 @@
  * Uses xlsx (SheetJS) to generate .xlsx files from timetable data.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export interface ExcelPeriod {
   number: number;
   label: string;

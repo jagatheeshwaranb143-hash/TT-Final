@@ -382,14 +382,15 @@ export default function SubjectsPage() {
     .sort((left, right) => (left.name || '').localeCompare(right.name || '', undefined, { sensitivity: 'base' }));
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div className="overview-page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', marginBottom: '4px' }}>
-            Curriculum & Subjects
+          <span className="page-eyebrow">Academic Curriculum</span>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: '4px 0 6px' }}>
+            Curriculum &amp; Subjects
           </h1>
-          <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
-            Configure courses and use Edit to adapt semester, workload, lab blocks, and faculty before regenerating the timetable.
+          <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>
+            Configure courses, workload credits, lab blocks, and faculty before generating the timetable.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
@@ -452,21 +453,9 @@ export default function SubjectsPage() {
           )}
           <button
             onClick={openCreate}
-            style={{
-              background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-              color: 'white',
-              border: 'none',
-              padding: '0.65rem 1.35rem',
-              borderRadius: '10px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: '0 4px 12px rgba(37,99,235,0.25)',
-            }}
+            className="btn btn-primary"
           >
-            <span>+</span> Add Subject
+            + Add Subject
           </button>
         </div>
       </div>
@@ -504,23 +493,20 @@ export default function SubjectsPage() {
       </div>
 
       {loading ? (
-        <div style={{ padding: '4rem', textAlign: 'center', color: '#64748b' }}>Loading courses...</div>
+        <div style={{ display: 'grid', gap: '1rem' }}>
+          <div className="skeleton-card" />
+          <div className="skeleton-card" />
+        </div>
       ) : filteredSubjects.length === 0 ? (
-        <div style={{ background: 'white', borderRadius: '14px', padding: '4rem', textAlign: 'center', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}></div>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.5rem' }}>{selectedDeptFilter ? 'No Subjects Found' : `Semester ${selectedSemester}`}</h3>
-          <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>{selectedDeptFilter ? 'Add courses to build your academic syllabus and timetable generator mappings.' : 'Choose a department type and department to view the subjects for this semester.'}</p>
+        <div className="empty-state">
+          <div className="empty-state-icon">
+            <span style={{ fontSize: 28 }}>📚</span>
+          </div>
+          <h2 className="empty-state-title">{selectedDeptFilter ? 'No Subjects Found' : `Semester ${selectedSemester}`}</h2>
+          <p className="empty-state-desc">{selectedDeptFilter ? 'Add courses to build your academic syllabus and timetable generator mappings.' : 'Choose a department type and department to view the subjects for this semester.'}</p>
           <button
             onClick={openCreate}
-            style={{
-              background: '#2563eb',
-              color: 'white',
-              border: 'none',
-              padding: '0.65rem 1.35rem',
-              borderRadius: '8px',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
+            className="btn btn-primary"
           >
             + Add Subject
           </button>
@@ -575,49 +561,64 @@ export default function SubjectsPage() {
 
       {/* Modal: Add or edit subject */}
       {showModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 1000, padding: '1rem', overflow: 'hidden' }}>
-          <div style={{ background: 'white', borderRadius: '14px', padding: 'clamp(1rem, 3vw, 2rem)', width: '100%', maxWidth: '520px', maxHeight: 'calc(100vh - 2rem)', overflowY: 'auto', overscrollBehavior: 'contain', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)' }}>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: '1.5rem', color: '#0f172a' }}>{editingSubjectId ? 'Edit Course Subject' : 'Add New Course Subject'}</h2>
-            {editingSubjectId && <div style={{ margin: '-0.75rem 0 1rem', padding: '10px 12px', borderRadius: 8, background: '#eff6ff', color: '#1d4ed8', fontSize: 13 }}>
-              Scheduling changes clear the affected odd/even cycle. Regenerate that cycle to apply the updated curriculum.
-            </div>}
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 1000, padding: '1rem', overflow: 'hidden' }}>
+          <div className="card" style={{ borderRadius: '16px', padding: 'clamp(1rem, 3vw, 2rem)', width: '100%', maxWidth: '540px', maxHeight: 'calc(100vh - 2rem)', overflowY: 'auto', overscrollBehavior: 'contain', boxShadow: 'var(--shadow-xl)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-text)', margin: 0 }}>
+                {editingSubjectId ? 'Edit Course Subject' : 'Add New Course Subject'}
+              </h2>
+              <button
+                type="button"
+                className="icon-button"
+                onClick={() => { setShowModal(false); resetForm(); }}
+                aria-label="Close dialog"
+                style={{ fontSize: 20, cursor: 'pointer', background: 'transparent', border: 'none', color: 'var(--color-text-secondary)' }}
+              >
+                ✕
+              </button>
+            </div>
+            {editingSubjectId && (
+              <div style={{ margin: '-0.25rem 0 1rem', padding: '10px 14px', borderRadius: 8, background: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.2)', color: 'var(--color-primary)', fontSize: 13 }}>
+                Scheduling changes clear the affected odd/even cycle. Regenerate that cycle to apply the updated curriculum.
+              </div>
+            )}
             <form onSubmit={handleSave}>
               <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Subject Name</label>
+                <label className="form-label" style={{ marginBottom: '0.4rem' }}>Subject Name</label>
                 <input
                   type='text'
+                  className="form-input"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder='Enter subject name (e.g. Data Structures & Algorithms)'
-                  style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem' }}
                   required
                 />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Subject Code</label>
+                  <label className="form-label" style={{ marginBottom: '0.4rem' }}>Subject Code</label>
                   <input
                     type='text'
+                    className="form-input"
                     value={formData.code}
                     onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                    placeholder='Enter subject code (e.g. CS301 / CS301L)'
-                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', color: formData.lab_block_size ? '#334155' : '#94a3b8' }}
+                    placeholder='e.g. CS301 / CS301L'
                     required
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Department</label>
+                  <label className="form-label" style={{ marginBottom: '0.4rem' }}>Department</label>
                   <select
+                    className="form-input"
                     value={formData.department_id}
                     onChange={(e) => setFormData({ ...formData, department_id: e.target.value, class_id: '', faculty_id: '' })}
                     disabled={Boolean(editingSubjectId)}
-                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', color: formData.department_id ? '#334155' : '#94a3b8' }}
                     required
                   >
-                    <option value="" disabled hidden>Department: Choose literature department</option>
+                    <option value="" disabled hidden>Choose department</option>
                     {literatureDepartments.map((d) => (
-                      <option key={d.id} value={d.id} style={{ color: '#334155' }}>{d.name} ({d.code})</option>
+                      <option key={d.id} value={d.id}>{d.name} ({d.code})</option>
                     ))}
                   </select>
                 </div>
@@ -625,13 +626,13 @@ export default function SubjectsPage() {
 
               {sectionClasses.length > 0 && (
                 <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>
+                  <label className="form-label" style={{ marginBottom: '0.4rem' }}>
                     Section Assignment (Year {formData.year_level || Math.ceil(selectedSemester / 2)} · Semester {formData.semester || selectedSemester})
                   </label>
                   <select
+                    className="form-input"
                     value={formData.class_id}
                     onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
-                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', color: '#334155', background: 'white' }}
                     required
                   >
                     <option value="all">All Sections ({sectionClasses.map(c => `Section ${c.section}`).join(', ')})</option>
@@ -639,7 +640,7 @@ export default function SubjectsPage() {
                       <option key={c.id} value={c.id}>Only Section {c.section}</option>
                     ))}
                   </select>
-                  <div style={{ color: '#64748b', fontSize: 12, marginTop: 4 }}>
+                  <div style={{ color: 'var(--color-text-muted)', fontSize: 12, marginTop: 4 }}>
                     {formData.class_id === 'all'
                       ? 'This course will be added to all sections. Each section can have its own assigned faculty.'
                       : `Assigning faculty specifically for Section ${sectionClasses.find(c => c.id === formData.class_id)?.section || ''}.`}
@@ -649,8 +650,9 @@ export default function SubjectsPage() {
 
               {formData.subject_type === 'lab' && (
                 <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Laboratory type</label>
+                  <label className="form-label" style={{ marginBottom: '0.4rem' }}>Laboratory type</label>
                   <select
+                    className="form-input"
                     value={formData.lab_mode}
                     onChange={(e) => {
                       const newMode = e.target.value;
@@ -662,24 +664,24 @@ export default function SubjectsPage() {
                         weekly_periods: autoBlockSize,
                       }));
                     }}
-                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: 8, marginBottom: 12 }}
+                    style={{ marginBottom: 12 }}
                   >
                     <option value="main">Main lab (3 consecutive periods)</option>
                     <option value="integrated">Integrated lab (2 consecutive periods)</option>
                   </select>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Consecutive Lab Block</label>
+                  <label className="form-label" style={{ marginBottom: '0.4rem' }}>Consecutive Lab Block</label>
                   <select
+                    className="form-input"
                     value={formData.lab_block_size}
                     onChange={(e) => {
                       const size = parseInt(e.target.value) || 3;
                       setFormData(prev => ({ ...prev, lab_block_size: size, weekly_periods: prev.weekly_periods % size === 0 ? prev.weekly_periods : size }));
                     }}
-                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', textAlign: 'center' }}
                     required
                   >
                     <option value={0} disabled hidden>Choose consecutive block</option>
-                    <option value={3} style={{ color: '#334155' }}>3 consecutive periods (Auto-selected for Main Lab)</option>
-                    <option value={2} style={{ color: '#334155' }}>2 consecutive periods</option>
+                    <option value={3}>3 consecutive periods (Auto-selected for Main Lab)</option>
+                    <option value={2}>2 consecutive periods</option>
                   </select>
                   <div style={{ color: '#0f766e', fontSize: 12, marginTop: 5, fontWeight: 600 }}>
                     {formData.lab_mode === 'main' ? '✓ Main lab automatically sets 3 consecutive periods.' : '✓ Integrated lab sets 2 consecutive periods.'}
@@ -689,8 +691,9 @@ export default function SubjectsPage() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Course Type</label>
+                  <label className="form-label" style={{ marginBottom: '0.4rem' }}>Course Type</label>
                   <select
+                    className="form-input"
                     value={formData.subject_type}
                     onChange={(e) => {
                       const newType = e.target.value;
@@ -704,112 +707,123 @@ export default function SubjectsPage() {
                         weekly_periods: isLab ? 3 : (prev.weekly_periods || 3),
                       }));
                     }}
-                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', color: formData.subject_type ? '#334155' : '#94a3b8' }}
                     required
                   >
-                    <option value="" disabled hidden>Choose course type</option>
-                    <option value="theory" style={{ color: '#334155' }}>Theory</option>
-                    <option value="lab" style={{ color: '#334155' }}>Lab / Practical</option>
-                    <option value="project" style={{ color: '#334155' }}>Project</option>
+                    <option value="" disabled hidden>Type</option>
+                    <option value="theory">Theory</option>
+                    <option value="lab">Lab / Practical</option>
+                    <option value="project">Project</option>
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Periods / Week</label>
+                  <label className="form-label" style={{ marginBottom: '0.4rem' }}>Periods / Wk</label>
                   <input
                     type='number'
+                    className="form-input"
                     min='1'
                     max='10'
                     value={formData.weekly_periods}
                     onChange={(e) => setFormData({ ...formData, weekly_periods: parseInt(e.target.value) || 3 })}
-                    style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem' }}
                     required
                   />
                 </div>
-                <div><label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Credits</label><input type="number" min="0" max="30" value={formData.credits} onChange={e => setFormData({ ...formData, credits: parseInt(e.target.value) || 0 })} style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: 8 }} required /></div>
+                <div>
+                  <label className="form-label" style={{ marginBottom: '0.4rem' }}>Credits</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    min="0"
+                    max="30"
+                    value={formData.credits}
+                    onChange={e => setFormData({ ...formData, credits: parseInt(e.target.value) || 0 })}
+                    required
+                  />
+                </div>
               </div>
 
               <div style={{ marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', flexWrap: 'wrap', gap: 6 }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155' }}>
-                    Assign Faculty Member (Required for generation)
+                  <label className="form-label" style={{ marginBottom: 0 }}>
+                    Assign Faculty Member
                   </label>
                   {selectedSubjectDepartment && (
-                    <span style={{ fontSize: '0.75rem', color: '#0369a1', background: '#e0f2fe', padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>
+                    <span style={{ fontSize: '0.75rem', color: '#0369a1', background: 'rgba(3, 105, 161, 0.1)', padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>
                       ⭐ Prioritizing {selectedSubjectDepartment.code} Faculty
                     </span>
                   )}
                 </div>
                 <select
+                  className="form-input"
                   value={formData.faculty_id}
                   onChange={(e) => setFormData({ ...formData, faculty_id: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', color: formData.faculty_id ? '#334155' : '#94a3b8' }}
                   required
                 >
-                  <option value="" disabled hidden>Faculty: Choose faculty member</option>
+                  <option value="" disabled hidden>Choose faculty member</option>
                   {prioritizedFacultyGroups.map((group, idx) => (
-                    <optgroup key={idx} label={group.label} style={{ color: group.isHome ? '#0369a1' : '#334155', fontWeight: group.isHome ? 700 : 600 }}>
+                    <optgroup key={idx} label={group.label}>
                       {group.faculty.map(member => (
-                        <option key={member.id} value={member.id} style={{ color: '#334155', fontWeight: group.isHome ? 600 : 400 }}>
+                        <option key={member.id} value={member.id}>
                           {group.isHome ? `⭐ ${member.name} (${group.department?.code || 'Home Dept'})` : `${member.name}`}
                         </option>
                       ))}
                     </optgroup>
                   ))}
                   {facultyWithoutDepartment.length > 0 && (
-                    <optgroup label="Other Faculty" style={{ color: '#334155' }}>
+                    <optgroup label="Other Faculty">
                       {facultyWithoutDepartment.map(member => (
-                        <option key={member.id} value={member.id} style={{ color: '#334155' }}>{member.name}</option>
+                        <option key={member.id} value={member.id}>{member.name}</option>
                       ))}
                     </optgroup>
                   )}
                 </select>
-                <div style={{ marginTop: 4, fontSize: '0.78rem', color: '#64748b' }}>
+                <div style={{ marginTop: 4, fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
                   Faculty from {selectedSubjectDepartment?.name || 'the subject department'} are prioritized at the top. Cross-department faculty can be selected from groups below if needed.
                 </div>
               </div>
 
               {selectedFaculty && (
-                <div style={{ margin: '-0.5rem 0 1.25rem', padding: 12, borderRadius: 9, border: `1px solid ${isCrossDepartment ? '#7dd3fc' : '#dbe3ee'}`, background: isCrossDepartment ? '#f0f9ff' : '#f8fafc' }}>
+                <div style={{ margin: '-0.5rem 0 1.25rem', padding: 12, borderRadius: 9, border: `1px solid ${isCrossDepartment ? '#7dd3fc' : 'var(--color-border)'}`, background: isCrossDepartment ? 'rgba(3, 105, 161, 0.06)' : 'var(--color-surface-hover)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-                    <strong style={{ color: isCrossDepartment ? '#0369a1' : '#334155', fontSize: 13 }}>
+                    <strong style={{ color: isCrossDepartment ? '#0369a1' : 'var(--color-text)', fontSize: 13 }}>
                       {isCrossDepartment
                         ? `Cross-department: ${selectedFacultyDepartment?.code || 'Faculty'} → ${selectedSubjectDepartment?.code || 'Class'}`
                         : `${selectedFacultyDepartment?.code || 'Department'} faculty assignment`}
                     </strong>
-                    <span style={{ color: '#475569', fontSize: 12, fontWeight: 700 }}>
+                    <span style={{ color: 'var(--color-text-secondary)', fontSize: 12, fontWeight: 700 }}>
                       {facultyScheduleLoading ? 'Analyzing timetable…' : `${facultySchedule.length} occupied periods in the ${formData.semester % 2 === 0 ? 'even' : 'odd'} cycle`}
                     </span>
                   </div>
                   {!facultyScheduleLoading && facultySchedule.length > 0 && (
-                    <div style={{ marginTop: 8, color: '#64748b', fontSize: 12, lineHeight: 1.6 }}>
+                    <div style={{ marginTop: 8, color: 'var(--color-text-secondary)', fontSize: 12, lineHeight: 1.6 }}>
                       Existing: {facultySchedule.slice(0, 6).map(entry => `${['Mon','Tue','Wed','Thu','Fri','Sat'][entry.day] || `Day ${entry.day + 1}`} P${entry.period} (${entry.class_label})`).join(' · ')}
                       {facultySchedule.length > 6 ? ` · +${facultySchedule.length - 6} more` : ''}
                     </div>
                   )}
-                  <div style={{ marginTop: 7, color: '#475569', fontSize: 12 }}>
+                  <div style={{ marginTop: 7, color: 'var(--color-text-muted)', fontSize: 12 }}>
                     {isCrossDepartment
                       ? `Priority: generate ${selectedFacultyDepartment?.code || 'the home department'} first. ${selectedSubjectDepartment?.code || 'The other department'} will use only this faculty member's remaining free periods.`
                       : 'This is the faculty member’s home-department assignment.'}
                   </div>
-                  {facultySchedule.length > 0 && <div style={{ marginTop: 5, color: '#b45309', fontSize: 12, fontWeight: 600 }}>
-                    During manual entry, an occupied period will show “{selectedFaculty.name} is attending another class” with the exact class and time.
-                  </div>
-                  }
+                  {facultySchedule.length > 0 && (
+                    <div style={{ marginTop: 5, color: '#b45309', fontSize: 12, fontWeight: 600 }}>
+                      During manual entry, an occupied period will show “{selectedFaculty.name} is attending another class” with the exact class and time.
+                    </div>
+                  )}
                 </div>
               )}
 
-              <div style={{ position: 'sticky', bottom: 0, display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', margin: '0 -0.25rem -0.25rem', padding: '1rem 0.25rem 0.25rem', borderTop: '1px solid #e2e8f0', background: 'white' }}>
+              <div style={{ position: 'sticky', bottom: 0, display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', margin: '0 -0.25rem -0.25rem', padding: '1rem 0.25rem 0.25rem', borderTop: '1px solid var(--color-border)', background: 'var(--color-surface)' }}>
                 <button
                   type='button'
+                  className="btn btn-outline"
                   onClick={() => { setShowModal(false); resetForm(); }}
-                  style={{ padding: '0.65rem 1.25rem', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
                 >
                   Cancel
                 </button>
                 <button
                   type='submit'
+                  className="btn btn-primary"
                   disabled={submitting}
-                  style={{ padding: '0.65rem 1.25rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
                 >
                   {submitting ? 'Saving...' : editingSubjectId ? 'Save Changes' : 'Add Subject'}
                 </button>

@@ -1636,3 +1636,200 @@ html[data-theme="dark"] .section-schedule-row.is-next { border-color: #115e59; b
 html[data-theme="dark"] .generation-conflict-alert { background: #301014; border-color: #7f1d1d; }
 html[data-theme="dark"] .conflict-alert-header { color: #fca5a5; }
 html[data-theme="dark"] .conflict-alert-msg { color: #fecaca; }
+
+/* ── Standardized Empty States ────────────────────────────── */
+.empty-state {
+  padding: clamp(32px, 5vw, 60px) 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--color-border);
+  background: var(--color-surface);
+}
+.empty-state-icon {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  color: var(--color-primary);
+  background: var(--color-primary-50);
+  margin-bottom: 16px;
+}
+.empty-state-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+.empty-state-desc {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  max-width: 420px;
+  line-height: 1.55;
+  margin-bottom: 18px;
+}
+html[data-theme="dark"] .empty-state-icon {
+  background: #182338;
+}
+
+/* ── Loading Skeletons ────────────────────────────────────── */
+.skeleton-card {
+  height: 140px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(90deg, var(--color-surface) 25%, var(--color-border) 50%, var(--color-surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border: 1px solid var(--color-border);
+}
+.skeleton-row {
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  margin-bottom: 8px;
+  animation: pulse 1.8s infinite;
+}
+
+/* ── Mobile Timetable Day View ────────────────────────────── */
+.timetable-view-toggle {
+  display: inline-flex;
+  padding: 3px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  gap: 4px;
+}
+.timetable-view-toggle button {
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--color-text-secondary);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.timetable-view-toggle button.active {
+  color: #fff;
+  background: var(--color-primary);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.mobile-day-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 12px;
+  scrollbar-width: thin;
+}
+.mobile-day-tab {
+  flex: 1;
+  min-width: 60px;
+  padding: 9px 12px;
+  text-align: center;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.mobile-day-tab.active {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-50);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+.mobile-timeline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mobile-timeline-card {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+.mobile-timeline-card.is-lab {
+  border-left: 4px solid #7c3aed;
+  background: rgba(124, 58, 237, 0.03);
+}
+.mobile-timeline-card.is-free {
+  border-left: 4px solid var(--color-border);
+  opacity: 0.75;
+}
+.mobile-time-badge {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 6px;
+  border-radius: 8px;
+  background: var(--color-surface-hover);
+  text-align: center;
+}
+.mobile-time-badge strong {
+  font-size: 12px;
+  color: var(--color-text);
+}
+.mobile-time-badge span {
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+.mobile-slot-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+.mobile-slot-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+.mobile-slot-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+/* ── Print Media Optimization ────────────────────────────── */
+@media print {
+  .app-sidebar,
+  .app-header,
+  .sidebar-scrim,
+  .skip-link,
+  .btn,
+  .timetable-view-toggle,
+  .mobile-day-tabs,
+  .faculty-toolbar,
+  .hero-actions {
+    display: none !important;
+  }
+  .app-main, .app-shell, .app-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .accessible-timetable {
+    border: 1px solid #94a3b8 !important;
+    box-shadow: none !important;
+  }
+}
