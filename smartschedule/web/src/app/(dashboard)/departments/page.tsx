@@ -130,7 +130,7 @@ export default function DepartmentsPage() {
               onChange={(e) => setDepartmentTypeFilter(e.target.value as 'all' | 'department' | 'lab')}
               style={{ padding: '6px 10px', fontSize: 13 }}
             >
-              <option value="all">Show all ({departments.length})</option>
+              <option value="all">Show all</option>
               <option value="department">Literature Departments</option>
               <option value="lab">Lab Departments</option>
             </select>

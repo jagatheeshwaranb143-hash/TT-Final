@@ -188,12 +188,13 @@ export default function ClassesPage() {
               onChange={(e) => setDepartmentFilter(e.target.value)}
             >
               <option value="all">All Departments</option>
-              {departments.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name} ({item.code})
-                  {item.department_type === 'lab' ? ' - Lab' : ''}
-                </option>
-              ))}
+              {departments
+                .filter((item) => (item.department_type || 'department') !== 'lab')
+                .map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name} ({item.code})
+                  </option>
+                ))}
             </select>
           </div>
           <div style={{ color: 'var(--color-text-secondary)', fontSize: 13, paddingBottom: 8, fontWeight: 600 }}>
